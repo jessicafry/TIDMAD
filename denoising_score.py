@@ -8,7 +8,6 @@ This code is parallelized with python concurrent.future command. With 8 cores, t
 roughly 30 minutes to calculate, while the coarse scan takes roughly 3 minutes
 
 """
-
 import numpy as np
 import h5py as h5
 from matplotlib import pyplot as plt
@@ -16,6 +15,7 @@ import matplotlib as mpl
 import logging
 import argparse
 import os
+import gc
 from tqdm import tqdm
 import concurrent.futures
 
@@ -45,24 +45,26 @@ def GetOneSecPSD(file_path, files, ch, start = 0):
 
     file = file_list[fileNum]
     logging.info("Opening file "+file)
-    if ch == 1:
-        data = h5.File(file)['timeseries']['channel0001']['timeseries'][startIndex:startIndex+N]
-    elif ch == 2:
-        data = h5.File(file)['timeseries']['channel0002']['timeseries'][startIndex:startIndex+N]
-    else:
-        logging.error("Incorrect channel number. Choose 1 or 2")
-    volt_range = (h5.File(file)['timeseries']['channel0001']).attrs['voltage_range_mV']
-    logging.info("Retrieved data from h5.")
+    with h5.File(file) as h5f:
+        if ch == 1:
+            data = h5f['timeseries']['channel0001']['timeseries'][startIndex:startIndex+N]
+        elif ch == 2:
+            data = h5f['timeseries']['channel0002']['timeseries'][startIndex:startIndex+N]
+        else:
+            logging.error("Incorrect channel number. Choose 1 or 2")
+        volt_range = (h5f['timeseries']['channel0001']).attrs['voltage_range_mV']
+        logging.info("Retrieved data from h5.")
 
-    scaling = np.float32(volt_range/(2*128.0))
-    TS = np.array(data, dtype= np.float32)*scaling
-    logging.info("Retrieved time series.")
-        
-    dt = 1.0/(h5.File(file)['timeseries']['channel0001']).attrs['sampling_frequency']
+        scaling = np.float32(volt_range/(2*128.0))
+        TS = np.array(data, dtype= np.float32)*scaling
+        logging.info("Retrieved time series.")
+            
+        dt = 1.0/(h5.File(file)['timeseries']['channel0001']).attrs['sampling_frequency']
 
-    psd_chunk = dt/N*(abs(np.fft.rfft(TS.reshape(len(TS)//N,N)))**2).sum(0)[1:]
-    freq_array = np.linspace(0,5*1e6,int(N/2))
-    
+        psd_chunk = dt/N*(abs(np.fft.rfft(TS.reshape(len(TS)//N,N)))**2).sum(0)[1:]
+        freq_array = np.linspace(0,5*1e6,int(N/2))
+    del data, TS, dt
+    gc.collect()
     return freq_array, psd_chunk
 
 def findPeak(pwr):
@@ -90,7 +92,6 @@ def process_iteration(i, path, file, coarse):
     # Process channel 1
     freq_squid, psd_squid = GetOneSecPSD(path, file, ch=1, start=start_index)
     snr_squid = getSNR(freq_squid, psd_squid, center_freq)[0]
-    
     return i, snr_sg, snr_squid
 
 ############################# Example Usage ###################################
@@ -102,7 +103,7 @@ def process_iteration(i, path, file, coarse):
 #       prescribed by the array2h5.py script. If using a single .h5 file, 
 #       it can be any length.
 ###############################################################################
-def calculateBenchmark(path, file, coarse = False):
+def calculateBenchmark(path, file, args):
     #n = 4199
     if type(file) == list:
         n = 200 * len(file)
@@ -113,29 +114,37 @@ def calculateBenchmark(path, file, coarse = False):
             n = length // 10000000 #use sampling rate to get number of seconds
     else:
         print("Incorrect file format")
-    if coarse == True:
+    if args.coarse:
         n = int(n/10)
     snr_squid = np.zeros(shape=(n,))
     snr_sg = np.zeros(shape=(n,))
-
-    # Initialize the executor
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        # Create a list of tasks
-        tasks = [executor.submit(process_iteration, i, path, file, coarse) for i in range(n)]
-        
-        # Process the results as they become available
-        for future in tqdm(concurrent.futures.as_completed(tasks), total=n):
-            i, result_snr_sg, result_snr_squid = future.result()
+    if args.parallel:
+        # Initialize the executor
+        with concurrent.futures.ProcessPoolExecutor(max_workers=args.num_workers) as executor:
+            # Create a list of tasks
+            tasks = [executor.submit(process_iteration, i, path, file, args.coarse) for i in range(n)]
+            
+            # Process the results as they become available
+            for future in tqdm(concurrent.futures.as_completed(tasks), total=n):
+                i, result_snr_sg, result_snr_squid = future.result(timeout=3)
+                snr_sg[i] = result_snr_sg
+                snr_squid[i] = result_snr_squid
+    else:
+        for i in tqdm(range(n)):
+            i, result_snr_sg, result_snr_squid = process_iteration(i, path, file, args.coarse)
             snr_sg[i] = result_snr_sg
             snr_squid[i] = result_snr_squid
     snr_sg = snr_sg/(np.amax(snr_sg))
-    score = np.round(np.sum(np.multiply(snr_sg, snr_squid))/snr_squid.size,decimal=2) + 1e-10
+    score = np.round(np.sum(np.multiply(snr_sg, snr_squid))/snr_squid.size,decimals=2) + 1e-10
     return math.log(score,5.27)
 
 parser = argparse.ArgumentParser(description="Calculate Benchmark 1: Denoising Score using the produced files from inference.py")
 parser.add_argument('--data_dir', '-d', type=str, default=os.getcwd(), help='Directory where the training file is stored (default: current working directory).')
 parser.add_argument('--denoising_model', '-m', type=str, default='punet', help='Denoising model we would like to train [none/savgol/mavg/punet/transformer] (Default: punet).')
 parser.add_argument('-c', '--coarse', action='store_true', help='Running a coarse scan instead of fine scan to compute denoising score.')
+parser.add_argument('-p', '--parallel', action='store_true', help='Running the denoising score calculation with multiprocessing.')
+parser.add_argument('-w', '--num_workers', type=int,  help='maximum number of workers for parallel processing, default: 32', default=32)
+args = parser.parse_args()
 args = parser.parse_args()
 
 file_list = []
@@ -151,7 +160,6 @@ for i in range(20):
     if os.path.exists(os.path.join(args.data_dir,fname)):
         file_list.append(fname)
 print(file_list)
-score = calculateBenchmark(args.data_dir+"/", file_list, args.coarse)
-print(f"{"Coarse" if args.coarse else "Fine"} Denoising Score for Model {args.denoising_model}: {score}")
-
-
+score = calculateBenchmark(args.data_dir+"/", file_list, args)
+is_coarse = "Coarse" if args.coarse else "Fine"
+print(f"{is_coarse} Denoising Score for Model {args.denoising_model}: {score}")

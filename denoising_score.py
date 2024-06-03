@@ -127,7 +127,7 @@ def calculateBenchmark(path, file, args):
             
             # Process the results as they become available
             for future in tqdm(concurrent.futures.as_completed(tasks), total=n):
-                i, result_snr_sg, result_snr_squid = future.result(timeout=3)
+                i, result_snr_sg, result_snr_squid = future.result()
                 snr_sg[i] = result_snr_sg
                 snr_squid[i] = result_snr_squid
     else:
@@ -144,7 +144,7 @@ parser.add_argument('--data_dir', '-d', type=str, default=os.getcwd(), help='Dir
 parser.add_argument('--denoising_model', '-m', type=str, default='punet', help='Denoising model we would like to train [none/savgol/mavg/punet/transformer] (Default: punet).')
 parser.add_argument('-c', '--coarse', action='store_true', help='Running a coarse scan instead of fine scan to compute denoising score.')
 parser.add_argument('-p', '--parallel', action='store_true', help='Running the denoising score calculation with multiprocessing.')
-parser.add_argument('-w', '--num_workers', type=int,  help='maximum number of workers for parallel processing, default: 32', default=32)
+parser.add_argument('-w', '--num_workers', type=int,  help='maximum number of workers for parallel processing, default: 32', default=8)
 args = parser.parse_args()
 args = parser.parse_args()
 

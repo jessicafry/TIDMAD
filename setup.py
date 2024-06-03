@@ -7,6 +7,11 @@ setup(
         'numpy',
         'scipy',
         'tqdm',
-        'torch'  # PyTorch is listed as 'torch' in PyPI
+        'torch',  # PyTorch is listed as 'torch' in PyPI
+        'h5py',
+        'jaxlib',
+        'jax',
+        'iminuit',
+        'matplotlib'
     ],
 )

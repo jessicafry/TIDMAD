@@ -46,7 +46,7 @@ TIDMAD users could follow the procedure below to reprocued the result in our pap
 4. Run `python inference.py -d [directory] -m [model]` to produced denoised time series file in `.h5` format
    * `[directory]` is where all the validation files are downloaded to in step 1.
    * For each validation file `abra_validation_00{##}.h5`, a denoised validation file `abra_validation_denoised_[model]_00{##}.h5` will be generated. Please note that the denoised validation file will also be saved at `[directory]`.
-   * `[model]` is the denoising algorithm to run inference over, user should choose from `[mavg/savgol/fcnet/punet/transformer]`. If user choose one of `[fcnet/punet/transformer]`, the trained model file in `.pth` format must present. These file can be generated following step 3 or be downloaded directly.
+   * `[model]` is the denoising algorithm to run inference over, user should choose from `[mavg/savgol/fcnet/punet/transformer]`. If user choose one of `[fcnet/punet/transformer]`, the trained model file in `.pth` format must be present at current working directory. These `.pth` file can be generated following step 3 or downloaded directly.
 5. Run `python denoising_score.py -d [directory] -m [model]`
    * `[directory]` is where all the validation files are downloaded to in step 1.
    * `[model]` is the denoising algorithm used in step 4, user should choose from `[none/mavg/savgol/fcnet/punet/transformer]`. `none` calculates the denoising score for raw SQUID time series without any denoising. If any model other than `none` is chosen, user must make sure that the corresponding `abra_validation_denoised_[model]_00{##}.h5` was successfully produced in step 4.

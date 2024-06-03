@@ -3,7 +3,7 @@ Code repository for TIDMAD: Time series Dataset for Discovering Dark Matter with
 
 ## Download Data
 The TIDMAD dataset can be downloaded using the `download_data.py` script provided in this GitHub repository. This script runs without any external dependencies. Data downloading is achieved by generating a series of wget commands and executing them in a Linux environment. `download_data.py` has the following arguments:
-* `--output_dir -o`: Destination directory where the file will be saved, default: current working directory.
+* `--output_dir -o`: Destination directory where the file will be downloaded, default: current working directory.
 * `--cache -c` Which OSDF cache location should be used to download data. Options includes [NY/NorCal/SoCal/Director(default)]:
   * NY: New York
   * NorCal: Sunnyvale

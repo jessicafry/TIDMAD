@@ -33,7 +33,7 @@ The dataset includes 248 files (288 if the weak signal version is included), all
 **Caveat:** Due to a hardware condition, the size of channel0001 and channel0002 time series in a few training and validation files are not identical. This does not affect the sample-to-sample correspondence between the two channels except in the last few time samples. To get around this, we recommend only using the first 2,000,000,000 samples in both channels for all files (i.e. ch01_time_series = ch01_time_series[:2000000000]).
 
 ## Model Training and Benchmarking:
-<br>![dataflow](https://github.com/aobol/TIDMAD/assets/25975621/f9962719-8a65-4321-8c97-fea6d67f24b1)
+<br>![dataflow](https://github.com/jessicafry/assets/tidmad_dataflow_git.png)
 <br>
 TIDMAD users could follow the procedure below to reprocued the result in our paper:
 1. Run `python download_data.py` script to download all datasets

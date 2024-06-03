@@ -8,7 +8,7 @@ The TIDMAD dataset can be downloaded using the `download_data.py` script provide
   * NY: New York
   * NorCal: Sunnyvale
   * SoCal: San Diego
-  * Director: automatically allocatecache based on user's location.
+  * Director: automatically find the fastest cache location based on user's location.
      * **WARNING:** Director cache is sometimes unstable. We recommend switching to a different cache if the download fails.
 * `--train_files -t`: Number of training files to download, must be an integer between 0 and 20, default 20.
 * `--validation_files -v`: Number of validation files to download, must be an integer between 0 and 20, default 20.
@@ -22,9 +22,9 @@ Alternatively, you can use the `filelist.dat` file, which contains the wget comm
 
 ## Dataset Composition:
 The dataset includes 248 files (288 if the weak signal version is included), all in HDF5 format. The dataset is partitioned into three subsets:
-1. Training Dataset: `abra_training_00{##}.h5` where ## varies from 00 to 20
+1. Training Dataset: `abra_training_00{##}.h5` where ## varies from 00 to 19
    * Each training `.h5` file has the following format:<br><img width="274" alt="Screenshot 2024-06-02 at 6 49 50 PM" src="https://github.com/aobol/TIDMAD/assets/25975621/0f99b6e6-2f7c-4566-91e8-cc29985f32c2">
-2. Training Dataset: `abra_validation_00{##}.h5` where ## varies from 00 to 20
+2. Training Dataset: `abra_validation_00{##}.h5` where ## varies from 00 to 19
    * Each validation `.h5` file has the following format:<br><img width="279" alt="Screenshot 2024-06-02 at 6 51 55 PM" src="https://github.com/aobol/TIDMAD/assets/25975621/fe466977-fe9c-46c2-8186-11986ed7a3c0">
 2. Science Dataset: `abra_science_0{###}.h5` where ### varies from 000 to 207
    * Each science `.h5` file has the following format:<br><img width="273" alt="Screenshot 2024-06-02 at 6 52 52 PM" src="https://github.com/aobol/TIDMAD/assets/25975621/17f8ae17-6942-4840-a092-a6d268fc2d83">

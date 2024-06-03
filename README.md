@@ -21,7 +21,7 @@ The TIDMAD dataset can be downloaded using the `download_data.py` script provide
 Alternatively, you can use the `filelist.dat` file, which contains the wget commands to download the entire dataset (except the weak signal version).
 
 ## Dataset Composition:
-The dataset includes 248 files (288 if the weak signal version is included), all in HDF5 format. The dataset is partitioned into three subsets:
+The dataset includes 248 files (288 if the weak signal version is included), all in HDF5 format. Dataset composition is specified in `TIDMAD_croissant.json`. The dataset is partitioned into three subsets:
 1. Training Dataset: `abra_training_00{##}.h5` where ## varies from 00 to 19
    * Each training `.h5` file has the following format:<br><img width="274" alt="Screenshot 2024-06-02 at 6 49 50 PM" src="https://github.com/aobol/TIDMAD/assets/25975621/0f99b6e6-2f7c-4566-91e8-cc29985f32c2">
 2. Training Dataset: `abra_validation_00{##}.h5` where ## varies from 00 to 19

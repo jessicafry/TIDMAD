@@ -55,7 +55,7 @@
       "@type": "cr:FileObject",
       "@id": "data-repository",
       "name": "data-repository",
-      "description": "TIDMAD repository on UCSD Data Planet. Download files via download.py on https://github.com/jessicafry/TIDMAD",
+      "description": "TIDMAD repository on Open Science Data Federation. Download files via download.py on https://github.com/jessicafry/TIDMAD",
       "contentUrl": "https://osg-htc.org/services/osdf.html",
       "encodingFormat": "application/x-hdf5",
       "sha256": "main"
@@ -64,7 +64,7 @@
       "@type": "cr:FileSet",
       "@id": "ABRA_aires_training_data",
       "name": "training",
-      "description": "repository of h5 training files hosted on the UCSD Data Planet repository.",
+      "description": "repository of h5 training files hosted on the Open Science Data Federation.",
       "containedIn": {
         "@id": "data-repository"
       },
@@ -75,7 +75,7 @@
       "@type": "cr:FileSet",
       "@id": "ABRA_aires_validation_data",
       "name": "validation",
-      "description": "repository of h5 validation files hosted on the UCSD Data Planet repository.",
+      "description": "repository of h5 validation files hosted on the Open Science Data Federation.",
       "containedIn": {
         "@id": "data-repository"
       },
@@ -86,7 +86,7 @@
       "@type": "cr:FileSet",
       "@id": "ABRA_aires_science_data",
       "name": "science",
-      "description": "repository of h5 science files hosted on the UCSD Data Planet repository.",
+      "description": "repository of h5 science files hosted on the Open Science Data Federation.",
       "containedIn": {
         "@id": "data-repository"
       },

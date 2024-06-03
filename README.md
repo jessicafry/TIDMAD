@@ -8,16 +8,17 @@ The TIDMAD dataset can be downloaded using the download_data.py script provided 
   * NY: New York
   * NorCal: Sunnyvale
   * SoCal: San Diego
-  * Director: automatically allocatecache based on user's location. WARNING: Director cache is sometimes unstable, we recommend switching to a different cache if the downloading fails.
+  * Director: automatically allocatecache based on user's location.
+     * **WARNING:** Director cache is sometimes unstable. We recommend switching to a different cache if the download fails.
 * `--train_files -t`: Number of training files to download, must be an integer between 0 and 20, default 20.
 * `--validation_files -v`: Number of validation files to download, must be an integer between 0 and 20, default 20.
 * `--science_files -s`: Number of science files to download, must be an integer between 0 and 208, default 208.
 * `-f, --force`: Directly proceed to download without showing the file size and asking the confirmation question.
 * `-sk, --skip_downloaded`: Skip the file that has already exist at --output_dir
-* `-w, --weak`: Download the weak signal version of training and validation file. In this version, the injected signal is 1/5 amplitude of the normal version. This is a more challenging denoising task. Please note that the normal version has file range 0000-0019, while the weak version has file range of 0020-0039
-* `-p, --print`           Print out all wget commands instead of actually executing the downloading command.
+* `-w, --weak`: Download the weak signal version of training and validation files. In this version, the injected signal is 1/5 the amplitude of the normal version. This is a more challenging denoising task. Note that the normal version has a file range 0000-0019, while the weak version has a file range of 0020-0039.
+* `-p, --print`: Print out all wget commands instead of actually executing the download commands.
 
-Alternatively, you can use the filelist.dat file, which contains the wget commands to download the entire dataset (except the weak signal version).
+Alternatively, you can use the `filelist.dat` file, which contains the wget commands to download the entire dataset (except the weak signal version).
 
 ## Dataset Composition:
 The dataset includes 248 files (288 if the weak signal version is included), all in HDF5 format. The dataset is partitioned into three subsets:

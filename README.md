@@ -55,7 +55,14 @@ TIDMAD users could follow the procedure below to reprocued the result in our pap
        * `-p --parallel`: parallelize the runing of the score calculation script
        * `-w, --num_workers`: maximum number of workers allowed for the parallel processing 
 7. Run `python process_science_data.py -d [directory] -m [model]` to generate the denoised time series over the science file (Hope please add these in)
-8. Generate Dark Matter Limit plot  (Hope/Jessica/Mo please add details)
+8. Run `python brazilband.py [path] [files] [output file name (no extention)] --level coarse --v` to generate dark matter limit in `[outpt].csv` and brazil band plot in `[output].png`.
+    * `brazilband.py` has arguments including:
+       *   `[path]` is the pathway to all of the input files listed in the `txt` file.
+       *   `[files]` is either the `.txt` file containing all of the `.h5` file names. Or, if psd averaging has been done, the `.npy` file containing `[freq, pwr]`.
+       *   `[out]` is the file name for output brazil band plot. Plot will be saved as `[out].png`. Data will be saved at `[out].csv`. If input file type is `.txt` the average psd will be saved in `[out].npy`.
+       *   `--level` is either 'coarse' or 'fine' for coarse or full axion mass points. Standard is 'coarse'.
+       *   `--v` for verbose option for logger and error messages.
+10. Run `` with `[output].csv` to produce global Dark Matter Limit plot. (Mo please add details)
 
 
 ## Paper Abstract

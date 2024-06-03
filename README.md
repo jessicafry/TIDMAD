@@ -30,7 +30,7 @@ The dataset includes 248 files (288 if the weak signal version is included), all
    * Each science `.h5` file has the following format:<br><img width="273" alt="Screenshot 2024-06-02 at 6 52 52 PM" src="https://github.com/aobol/TIDMAD/assets/25975621/17f8ae17-6942-4840-a092-a6d268fc2d83">
    * For science files, there are no injected fake signal therefore only 1 channel is present
 
-**Caveat:** Due to a hardware condition, the size of channel0001 and channel0002 time series in a few training and validation files are not identical. This does not affect the sample-to-sample correspondence between the two channels except in the last few time samples. To get around this, we recommend only using the first 2,000,000,000 samples in both channels for all files (i.e. ch01_time_series = ch01_time_series[:2000000000]).
+**Caveat:** Due to a hardware condition, the size of channel0001 and channel0002 time series in a few training and validation files are not identical. This does not affect the sample-to-sample correspondence between the two channels except in the last few time samples. To get around this, we recommend only using the first 2,000,000,000 samples in both channels for all files (i.e. `ch01_time_series = ch01_time_series[:2000000000]`).
 
 ## Model Training and Benchmarking:
 <br>![dataflow](https://github.com/aobol/TIDMAD/assets/25975621/f9962719-8a65-4321-8c97-fea6d67f24b1)

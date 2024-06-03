@@ -48,8 +48,14 @@ TIDMAD users could follow the procedure below to reprocued the result in our pap
    * For each validation file `abra_validation_00{##}.h5`, a denoised validation file `abra_validation_denoised_[model]_00{##}.h5` will be generated. Please note that the denoised validation file will also be saved at `[directory]`.
    * `[model]` is the denoising algorithm to run inference over, user should choose from `[mavg/savgol/fcnet/punet/transformer]`. If user choose one of `[fcnet/punet/transformer]`, the trained model file in `.pth` format must present. These file can be generated following step 3 or be downloaded directly.
 5. Run `python denoising_score.py -d [directory] -m [model]`
-6. Run `python process_science_data.py -d [directory] -m [model]` to generate the denoised time series over the science file (Hope please add these in)
-7. Generate Dark Matter Limit plot  (Hope/Jessica/Mo please add details)
+   * `[directory]` is where all the validation files are downloaded to in step 1.
+   * `[model]` is the denoising algorithm used in step 4, user should choose from `[none/mavg/savgol/fcnet/punet/transformer]`. `none` calculates the denoising score for raw SQUID time series without any denoising. If any model other than `none` is chosen, user must make sure that the corresponding `abra_validation_denoised_[model]_00{##}.h5` was successfully produced in step 4.
+   * `python denoising_score.py` has additional arguments, including:
+       * `-c --coarse`: calculate coarse denoising score instead of fine denoising score
+       * `-p --parallel`: parallelize the runing of the score calculation script
+       * `-w, --num_workers`: maximum number of workers allowed for the parallel processing 
+7. Run `python process_science_data.py -d [directory] -m [model]` to generate the denoised time series over the science file (Hope please add these in)
+8. Generate Dark Matter Limit plot  (Hope/Jessica/Mo please add details)
 
 
 ## Paper Abstract

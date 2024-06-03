@@ -36,7 +36,7 @@ The dataset includes 248 files (288 if the weak signal version is included), all
 <br>![dataflow](https://github.com/aobol/TIDMAD/assets/25975621/f9962719-8a65-4321-8c97-fea6d67f24b1)
 <br>
 TIDMAD users could follow the procedure below to reprocued the result in our paper:
-1. Run `python download.py` script to download all datasets
+1. Run `python download_data.py` script to download all datasets
 2. Set up the required environment using `python setup.py install`
 3. Train 3 deep learning models by running `python train.py -d [directory] -m [model]`
    * `[directory]` is where all the training files are downloaded to in step 1

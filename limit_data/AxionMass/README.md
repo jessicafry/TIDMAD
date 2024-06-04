@@ -1,2 +1,0 @@
-# Axion mass predictions 
-These come from matching the cosmological abundance in axions to the observed dark matter abundance. The list is presumably incomplete, but these are the ones I have been able to source so far. Contact me if any are missing.

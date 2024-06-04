@@ -1,2 +1,0 @@
-# https://arxiv.org/pdf/1412.0789.pdf
-0.8e-4 1.3e-4

@@ -1,0 +1,12 @@
+# BREAD
+# Interpolated projection (Stefan Knirck private communication)
+# https://arxiv.org/pdf/2111.12103.pdf
+# mass [eV] kinetic mixing
+0.0002 1e0
+0.0002 3.132e-15
+0.002 3.132e-15
+0.002 1.753e-16
+0.124 1.38e-15
+0.124 9.76e-17
+0.83 2.525e-16
+0.83 1e0

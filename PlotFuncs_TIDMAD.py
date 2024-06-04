@@ -20,6 +20,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.cm as cm
 from scipy.stats import norm
 import matplotlib.patheffects as pe
+import latex
 
 pltdir = 'plots/'
 pltdir_png = pltdir+'plots_png/'
@@ -737,7 +738,7 @@ class AxionPhoton():
                     plt.text(text_shift[0]*1.3e-9,text_shift[1]*1.0e2,r'{\bf ABRACADABRA}',fontsize=fs-1,color=col,rotation=0,ha='left',va='top',clip_on=True)
                     plt.plot([dat[-1,0],dat[-1,0]],[dat[-1,1]/(rs1*2e-10*dat[-1,0]+rs2),1e6],lw=1.5,color=col,zorder=0)
         return
-    def ABRACADABRA_TIDMAD(raw_fname, denoised_fname, ax,col='red',fs=15,projection=False,RescaleByMass=False,text_on=True,lw=1,text_shift=[1,1],edgealpha=1,deNoise=True):
+    def ABRACADABRA_TIDMAD(raw_fname, denoised_fname=None, ax,col='red',fs=15,projection=False,RescaleByMass=False,text_on=True,lw=1,text_shift=[1,1],edgealpha=1):
         # ABRACADABRA arXiv:[1810.12257]
         if RescaleByMass:
             rs1 = 1.0
@@ -755,7 +756,7 @@ class AxionPhoton():
         plt.plot(x,y/(rs1*2e-10*x+rs2),'k-',lw=lw,zorder=3.01,alpha=edgealpha)
 
 
-        if deNoise:
+        if denoised_fname!=None:
             dat = loadtxt(denoised_fname, delimiter=',')
             n = shape(dat)[0]
             plt.fill_between(dat[:,0],dat[:,1]/(rs1*2e-10*dat[:,0]+rs2),y2=y2,edgecolor=None,facecolor='#8F0021',zorder=3.0)

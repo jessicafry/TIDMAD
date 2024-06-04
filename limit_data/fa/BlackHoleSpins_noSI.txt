@@ -1,0 +1,17 @@
+# Black hole superradiance constraints arxiv.org/abs/2009.07206
+# Stellar mass and supermassive black hole spins constrain windows of m_a
+# Does not take into account self-interactions, i.e. just mass bounds
+# 95% CL bounds
+# m_a [eV] g [any coupling]
+2.7e-21 1e-90
+2.7e-21 1.0
+4.5e-21 1.0
+4.5e-21 1e-90
+1.7e-19 1e-90
+1.7e-19 1.0
+5.9e-17 1.0
+5.9e-17 1.0e-90
+4.3e-14 1.0e-90
+4.3e-14 1.0
+2.7e-11 1.0
+2.7e-11 1.0e-90

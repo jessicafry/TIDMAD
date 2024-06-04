@@ -737,7 +737,7 @@ class AxionPhoton():
                     plt.text(text_shift[0]*1.3e-9,text_shift[1]*1.0e2,r'{\bf ABRACADABRA}',fontsize=fs-1,color=col,rotation=0,ha='left',va='top',clip_on=True)
                     plt.plot([dat[-1,0],dat[-1,0]],[dat[-1,1]/(rs1*2e-10*dat[-1,0]+rs2),1e6],lw=1.5,color=col,zorder=0)
         return
-    def ABRACADABRA_TIDMAD(ax,col='red',fs=15,projection=False,RescaleByMass=False,text_on=True,lw=1,text_shift=[1,1],edgealpha=1,deNoise=True):
+    def ABRACADABRA_TIDMAD(raw_fname, denoised_fname, ax,col='red',fs=15,projection=False,RescaleByMass=False,text_on=True,lw=1,text_shift=[1,1],edgealpha=1,deNoise=True):
         # ABRACADABRA arXiv:[1810.12257]
         if RescaleByMass:
             rs1 = 1.0
@@ -746,7 +746,7 @@ class AxionPhoton():
             rs1 = 0.0
             rs2 = 1.0
         y2 = ax.get_ylim()[1]
-        dat = loadtxt("limit_data/Mo/ABRACADABRA_noise.txt")
+        dat = loadtxt(raw_fname, delimiter=',')
         n = shape(dat)[0]
         plt.fill_between(dat[:,0],dat[:,1]/(rs1*2e-10*dat[:,0]+rs2),y2=y2,edgecolor=None,facecolor=col,zorder=3.01)
         x = dat[arange(0,n,20),0]
@@ -756,7 +756,7 @@ class AxionPhoton():
 
 
         if deNoise:
-            dat = loadtxt("limit_data/Mo/ABRACADABRA_deNoise.txt")
+            dat = loadtxt(denoised_fname, delimiter=',')
             n = shape(dat)[0]
             plt.fill_between(dat[:,0],dat[:,1]/(rs1*2e-10*dat[:,0]+rs2),y2=y2,edgecolor=None,facecolor='#8F0021',zorder=3.0)
             x = dat[arange(0,n,1),0]

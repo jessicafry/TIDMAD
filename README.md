@@ -54,8 +54,13 @@ TIDMAD users could follow the procedure below to reprocued the result in our pap
        * `-c --coarse`: calculate coarse denoising score instead of fine denoising score
        * `-p --parallel`: parallelize the runing of the score calculation script
        * `-w, --num_workers`: maximum number of workers allowed for the parallel processing 
-7. Run `python process_science_data.py -d [directory] -m [model]` to generate the denoised time series over the science file (Hope please add these in)
-8. Run `python brazilband.py [path] [files] [output file name (no extention)] --level coarse --v` to generate dark matter limit in `[outpt].csv` and brazil band plot in `[output].png`.
+7. Run `python process_science_data.py -d [directory] -m [model]` to generate the denoised time series over the 208 science files provided.
+       * `[directory]` is the directory of the input files. The file names should match the downloaded, raw science data files. Do not edit science file names.
+       * `[model]` is one of the three deep learning models developed: `punet`, `fcnet`, or `transformer`
+       * **Note** the corresponding `.pth` files must be in the same directory as the `process_science_data.py` program.
+       * The denoised science data will be outputed with the following file names:
+              * denoised_[PUNet/FCNet/Transformer]_[0/4/10/15]_[4/10/15/20]ph_file_[0000-0207].h5
+9. Run `python brazilband.py [path] [files] [output file name (no extention)] --level coarse --v` to generate dark matter limit in `[outpt].csv` and brazil band plot in `[output].png`.
     * `brazilband.py` has arguments including:
        *   `[path]` is the pathway to all of the input files listed in the `txt` file.
        *   `[files]` is either the `.txt` file containing all of the `.h5` file names. Or, if psd averaging has been done, the `.npy` file containing `[freq, pwr]`.

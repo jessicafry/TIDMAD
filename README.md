@@ -59,7 +59,7 @@ TIDMAD users could follow the procedure below to reprocued the result in our pap
    * `[model]` is one of the three deep learning models developed: `punet`, `fcnet`, or `transformer`
    * **Note** the corresponding `.pth` files must be in the same directory as the `process_science_data.py` program.
    * The denoised science data will be outputed with the following file names:
-       * denoised_[PUNet/FCNet/Transformer]_[0/4/10/15]_[4/10/15/20]ph_file_[0000-0207].h5
+       * `denoised_[PUNet/FCNet/Transformer]_[0/4/10/15]_[4/10/15/20]ph_file_[0000-0207].h5`
 9. Run `python brazilband.py [path] [files] [output file name (no extention)] --level coarse --v` to generate dark matter limit in `[outpt].csv` and brazil band plot in `[output].png`.
     * `brazilband.py` has arguments including:
        *   `[path]` is the pathway to all of the input files listed in the `txt` file.

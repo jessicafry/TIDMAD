@@ -122,14 +122,14 @@ def process_denoised(denoised, note = ''):
 def main(args):
     #change range to process specific science data files
     
-    for ifile in range(0,207):
+    for ifile in range(0,208):
         #change to prefix of downloaded science data files 
         if ifile<10:
-            fname = f"MagnetOn_80mVADC_ChAIntegAxion_RF30kOhm_10kHzHPF_5MHzLPF_000{ifile}.h5"
+            fname = f"abra_science_000{ifile}.h5"
         elif ifile<100:
-            fname = f"MagnetOn_80mVADC_ChAIntegAxion_RF30kOhm_10kHzHPF_5MHzLPF_00{ifile}.h5"
+            fname = f"abra_science_00{ifile}.h5"
         else:
-            fname = f"MagnetOn_80mVADC_ChAIntegAxion_RF30kOhm_10kHzHPF_5MHzLPF_0{ifile}.h5"
+            fname = f"abra_science_0{ifile}.h5"
             
         if not os.path.exists(os.path.join(args.data_dir,fname)):
             print(f"Science run {fname} not found in {args.data_dir}!")

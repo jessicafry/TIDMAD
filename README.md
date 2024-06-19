@@ -1,6 +1,8 @@
 # TIDMAD
 Code repository for TIDMAD: TIme series dataset for discovering Dark Matter with Ai Denoising.<br>__TL;DR:__  TIDMAD is the first dataset and benchmark from a dark matter physics experiment, providing ultra-long time series data and comprehensive tools that enable machine learning models to directly advance the fundamental physics search for dark matter.
 
+## Paper Pre-Print: https://arxiv.org/abs/2406.04378
+
 ## Download Data
 The TIDMAD dataset can be downloaded using the `download_data.py` script provided in this GitHub repository. This script runs without any external dependencies. Data downloading is achieved by generating a series of wget commands and executing them in a Linux environment. `download_data.py` has the following arguments:
 * `--output_dir -o`: Destination directory where the file will be downloaded, default: current working directory.

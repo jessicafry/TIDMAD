@@ -1,7 +1,7 @@
 # TIDMAD
 Code repository for TIDMAD: TIme series dataset for discovering Dark Matter with Ai Denoising.<br>__TL;DR:__  TIDMAD is the first dataset and benchmark from a dark matter physics experiment, providing ultra-long time series data and comprehensive tools that enable machine learning models to directly advance the fundamental physics search for dark matter.
 
-## Paper Pre-Print: https://arxiv.org/abs/2406.04378
+[Paper Pre-Print](https://arxiv.org/abs/2406.04378)
 
 ## Download Data
 The TIDMAD dataset can be downloaded using the `download_data.py` script provided in this GitHub repository. This script runs without any external dependencies. Data downloading is achieved by generating a series of wget commands and executing them in a Linux environment. `download_data.py` has the following arguments:
@@ -78,3 +78,6 @@ Please contact J. T. Fry for all questions about the code and data [jtfry@mit.ed
 
 ## Paper Abstract
 Dark matter makes up approximately 85\% of total matter in our universe, yet it has never been directly observed in any laboratory on Earth as of today. The origin of dark matter is one of the most important questions in contemporary physics, and a convincing detection of dark matter would be a Nobel-Prize-level breakthrough in fundamental science. The ABRACADABRA experiment was meticulously designed to search for dark matter. Although it has not yet made a discovery, ABRACADABRA has produced several dark matter search result widely endorsed by the physics community. The experiment generates ultra-long time-series data at a rate of 10 million samples per second, where the dark matter signal, if exist, would manifest  itself as a sinusoidal oscillation mode within the ultra-long time series. In this paper, we present a comprehensive data release from the ABRACADABRA experiment including three key components: a ultra-long time series dataset divided into training, validation, and dark matter search subsets; a carefully-designed denoising score for direct model benchmarking; and a complete analysis framework which yield a community-standard dark matter search result suitable for publication in a physics journal. Our data release enables core AI algorithms to directly produce physics results thereby advancing fundamental science.
+
+## License
+Both the TIDMAD dataset and the associated software in this repository are licensed under the [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) license

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon June 2 2024
-@author: Aobo Li
+@author: TIDMAD Team
 This code runs inference over the validation dataset to perform denoising task. Possible
 denoising algorithms includes:
 
@@ -22,11 +22,7 @@ If running this inference script with trained PUNet, This script will create a n
 /address/to/abra_validation_denoised_punet_0000.h5
 
 Please note: if running deep learning model inference, the trained deep learning model must be present at the
-same directory of this script. You can either obtain the trained deep learning model by running train.py, or download
-our trained model from this address:
-
-https://drive.google.com/drive/folders/16ORX1b2zo1_lOYYAcRBgddBuYImj0Bxs?usp=sharing
-
+same directory of this script. You can obtain the trained deep learning model by running train.py.
 """
 
 import numpy as np

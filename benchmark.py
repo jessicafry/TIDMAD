@@ -1,6 +1,6 @@
 """
 Created on Mon June 2 2024
-@author: Jessica Fry, Aobo Li
+@author: TIDMAD Team
 This code analyzes the abra_validation_denoised_* file produced by inference.py script to
 produce Benchmark 1: Denoising Score.
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon May 10 2024
-@author: Aobo Li, Hope Fu
+@author: TIDMAD Team
 
 This script trains deep learning model over the training dataset, possible architecture includes:
  - Fully Connected Network [fcnet]

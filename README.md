@@ -25,17 +25,17 @@ Alternatively, you can use the `filelist.dat` file, which contains the wget comm
 ## Dataset Composition:
 The dataset includes 248 files (288 if the weak signal version is included), all in HDF5 format. Dataset composition is specified in `TIDMAD_croissant.json`. The dataset is partitioned into three subsets:
 1. Training Dataset: `abra_training_00{##}.h5` where ## varies from 00 to 19
-   * Each training `.h5` file has the following format:<br><img width="274" alt="Screenshot 2024-06-02 at 6 49 50 PM" src="https://github.com/aobol/TIDMAD/assets/25975621/0f99b6e6-2f7c-4566-91e8-cc29985f32c2">
+   * Each training `.h5` file has the following format:<br><img width="274" alt="abra_training_structure" src="images/abra_training.png">
 2. Training Dataset: `abra_validation_00{##}.h5` where ## varies from 00 to 19
-   * Each validation `.h5` file has the following format:<br><img width="279" alt="Screenshot 2024-06-02 at 6 51 55 PM" src="https://github.com/aobol/TIDMAD/assets/25975621/fe466977-fe9c-46c2-8186-11986ed7a3c0">
+   * Each validation `.h5` file has the following format:<br><img width="279" alt="abra_validation_structure" src="images/abra_validation.png">
 2. Science Dataset: `abra_science_0{###}.h5` where ### varies from 000 to 207
-   * Each science `.h5` file has the following format:<br><img width="273" alt="Screenshot 2024-06-02 at 6 52 52 PM" src="https://github.com/aobol/TIDMAD/assets/25975621/17f8ae17-6942-4840-a092-a6d268fc2d83">
+   * Each science `.h5` file has the following format:<br><img width="273" alt="abra_science_structure" src="images/abra_science.png">
    * For science files, there are no injected fake signal therefore only 1 channel is present
 
 **Caveat:** Due to a hardware condition, the size of channel0001 and channel0002 time series in a few training and validation files are not identical. This does not affect the sample-to-sample correspondence between the two channels except in the last few time samples. To get around this, we recommend only using the first 2,000,000,000 samples in both channels for all files (i.e. `ch01_time_series = ch01_time_series[:2000000000]`).
 
 ## Model Training and Benchmarking:
-<br>![dataflow](https://github.com/jessicafry/assets/blob/c63f260d296019be0268c0765821fc88a380e7a5/tidmad_dataflow_git.png)
+<br>![dataflow](images/tidmad_dataflow_git.png)
 <br>
 TIDMAD users could follow the procedure below to reprocued the result in our paper:
 1. Run `python download_data.py` script to download all datasets

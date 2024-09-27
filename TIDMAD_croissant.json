@@ -48,14 +48,14 @@
   "name": "TIDMAD",
   "description": " Dark matter makes up approximately 85% of total matter in our universe,  yet it has never been directly observed in any laboratory on Earth as  of today. The origin of dark matter is one of the most important questions  in contemporary physics, and a convincing detection of dark matter would  be a Nobel-Prize-level breakthrough in fundamental science. The ABRACADABRA  experiment was meticulously designed to search for dark matter. Although  it has not yet made a discovery, ABRACADABRA has produced several dark  matter search result widely endorsed by the physics community. The  experiment generates ultra-long time-series data at a rate of 10 million  samples per second, where the dark matter signal, if exist, would manifest  itself as a sinusoidal oscillation mode within the ultra-long time series.  In this paper, we present a comprehensive data release from the ABRACADABRA  experiment including three key components: a ultra-long time series dataset  divided into training, validation, and dark matter search subsets; a  carefully-designed denoising score for direct model benchmarking; and a  complete analysis framework which yield a community-standard dark matter  search result suitable for publication in a physics journal. Our data  release enables core AI algorithms to directly produce physics results  thereby advancing fundamental science. ",
   "conformsTo": "http://mlcommons.org/croissant/1.0",
-  "citeAs": "@article{tidmad, title={TIDMAD: Time series Dataset for Discovering  Dark Matter with AI Denoising.}, author={J. T. Fry and Aobo Li and  Lindley Winslow and Xinyi Hope Fu and Zhenghao Fu and Kaliroe M. W.  Pappas}, year={2024}, archivePrefix={arXiv}, primaryClass={cs.CL} }",
-  "url": "https://github.com/jessicafry/TIDMAD",
+  "citeAs": "@article{tidmad, title={TIDMAD: Time series Dataset for Discovering  Dark Matter with AI Denoising.}, year={2024}, archivePrefix={arXiv}, primaryClass={cs.CL} }",
+  "url": "https://anonymous.4open.science/r/TIDMAD",
   "distribution": [
     {
       "@type": "cr:FileObject",
       "@id": "data-repository",
       "name": "data-repository",
-      "description": "TIDMAD repository on Open Science Data Federation. Download files via download.py on https://github.com/jessicafry/TIDMAD",
+      "description": "TIDMAD repository on Open Science Data Federation. Download files via download.py on https://anonymous.4open.science/r/TIDMAD",
       "contentUrl": "https://osg-htc.org/services/osdf.html",
       "encodingFormat": "application/x-hdf5",
       "sha256": "main"

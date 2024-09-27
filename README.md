@@ -44,7 +44,6 @@ TIDMAD users could follow the procedure below to reprocued the result in our pap
    * `[directory]` is where all the training files are downloaded to in step 1
    * `[model]` is the deep learning model to train, user should choose from `[fcnet/punet/transformer]`.
    * Note: for each deep learning model, 4 files will be produced due to Frequency Splitting discussed in the paper. (i.e. for `-m fcnet` there will be 4 files including `FCNet_0_4.pth`, `FCNet_4_10.pth`, `FCNet_10_15.pth`, `FCNet_15_20.pth`
-   * Alternatively, users could download our trained model at Google Drive [Link](https://drive.google.com/drive/folders/16ORX1b2zo1_lOYYAcRBgddBuYImj0Bxs?usp=sharing)
 4. Run `python inference.py -d [directory] -m [model]` to produced denoised time series file in `.h5` format
    * `[directory]` is where all the validation files are downloaded to in step 1.
    * For each validation file `abra_validation_00{##}.h5`, a denoised validation file `abra_validation_denoised_[model]_00{##}.h5` will be generated. Please note that the denoised validation file will also be saved at `[directory]`.

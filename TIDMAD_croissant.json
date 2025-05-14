@@ -1,114 +1,78 @@
 {
   "@context": {
-    "@language": "en",
-    "@vocab": "https://schema.org/",
-    "citeAs": "cr:citeAs",
-    "column": "cr:column",
-    "conformsTo": "dct:conformsTo",
-    "cr": "http://mlcommons.org/croissant/",
-    "rai": "http://mlcommons.org/croissant/RAI/",
-    "data": {
-      "@id": "cr:data",
-      "@type": "@json"
-    },
-    "dataType": {
-      "@id": "cr:dataType",
-      "@type": "@vocab"
-    },
-    "dct": "http://purl.org/dc/terms/",
-    "examples": {
-      "@id": "cr:examples",
-      "@type": "@json"
-    },
-    "extract": "cr:extract",
-    "field": "cr:field",
-    "fileProperty": "cr:fileProperty",
-    "fileObject": "cr:fileObject",
-    "fileSet": "cr:fileSet",
-    "format": "cr:format",
-    "includes": "cr:includes",
-    "isLiveDataset": "cr:isLiveDataset",
-    "jsonPath": "cr:jsonPath",
-    "key": "cr:key",
-    "md5": "cr:md5",
-    "parentField": "cr:parentField",
-    "path": "cr:path",
-    "recordSet": "cr:recordSet",
-    "references": "cr:references",
-    "regex": "cr:regex",
-    "repeated": "cr:repeated",
-    "replace": "cr:replace",
-    "sc": "https://schema.org/",
-    "separator": "cr:separator",
-    "source": "cr:source",
-    "subField": "cr:subField",
-    "transform": "cr:transform"
+    "@language" : "en",
+    "@vocab": "https://schema.org/", 
+    "schema": "https://schema.org/",
+    "name": "https://schema.org/name",
+    "cr": "http://mlcommons.org/schema/",
+    "sc": "http://mlcommons.org/schema/"
   },
-  "@type": "sc:Dataset",
+  "@type": "https://schema.org/Dataset",
   "name": "TIDMAD",
-  "description": " Dark matter makes up approximately 85% of total matter in our universe,  yet it has never been directly observed in any laboratory on Earth as  of today. The origin of dark matter is one of the most important questions  in contemporary physics, and a convincing detection of dark matter would  be a Nobel-Prize-level breakthrough in fundamental science. The ABRACADABRA  experiment was meticulously designed to search for dark matter. Although  it has not yet made a discovery, ABRACADABRA has produced several dark  matter search result widely endorsed by the physics community. The  experiment generates ultra-long time-series data at a rate of 10 million  samples per second, where the dark matter signal, if exist, would manifest  itself as a sinusoidal oscillation mode within the ultra-long time series.  In this paper, we present a comprehensive data release from the ABRACADABRA  experiment including three key components: a ultra-long time series dataset  divided into training, validation, and dark matter search subsets; a  carefully-designed denoising score for direct model benchmarking; and a  complete analysis framework which yield a community-standard dark matter  search result suitable for publication in a physics journal. Our data  release enables core AI algorithms to directly produce physics results  thereby advancing fundamental science. ",
   "conformsTo": "http://mlcommons.org/croissant/1.0",
-  "citeAs": "@article{tidmad, title={TIDMAD: Time series Dataset for Discovering  Dark Matter with AI Denoising.}, year={2024}, archivePrefix={arXiv}, primaryClass={cs.CL} }",
-  "url": "https://anonymous.4open.science/r/TIDMAD",
+  "description": " Dark matter makes up approximately 85% of total matter in our universe,  yet it has never been directly observed in any laboratory on Earth as  of today. The origin of dark matter is one of the most important questions  in contemporary physics, and a convincing detection of dark matter would  be a Nobel-Prize-level breakthrough in fundamental science. The ABRACADABRA  experiment was meticulously designed to search for dark matter. Although  it has not yet made a discovery, ABRACADABRA has produced several dark  matter search result widely endorsed by the physics community. The  experiment generates ultra-long time-series data at a rate of 10 million  samples per second, where the dark matter signal, if exist, would manifest  itself as a sinusoidal oscillation mode within the ultra-long time series.  In this paper, we present a comprehensive data release from the ABRACADABRA  experiment including three key components: a ultra-long time series dataset  divided into training, validation, and dark matter search subsets; a  carefully-designed denoising score for direct model benchmarking; and a  complete analysis framework which yield a community-standard dark matter  search result suitable for publication in a physics journal. Our data  release enables core AI algorithms to directly produce physics results  thereby advancing fundamental science. ",
+  "citation": "@article{tidmad, title={TIDMAD: Time series Dataset for Discovering  Dark Matter with AI Denoising.}, author={J. T. Fry and Aobo Li and  Lindley Winslow and Xinyi Hope Fu and Zhenghao Fu and Kaliroe M. W.  Pappas}, year={2024}, archivePrefix={arXiv}, primaryClass={cs.CL} }",
+  "datePublished": "2024-05-14",
+  "version": "1.0.0",
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "url": "https://github.com/jessicafry/TIDMAD",
   "distribution": [
     {
-      "@type": "cr:FileObject",
+      "@type": "https://schema.org/Dataset",
       "@id": "data-repository",
-      "name": "data-repository",
-      "description": "TIDMAD repository on Open Science Data Federation. Download files via download.py on https://anonymous.4open.science/r/TIDMAD",
+      "name": "TIDMAD_Main_Repository",
+      "description": "TIDMAD repository on Open Science Data Federation. Download files via download.py on https://github.com/jessicafry/TIDMAD",
       "contentUrl": "https://osg-htc.org/services/osdf.html",
       "encodingFormat": "application/x-hdf5",
       "sha256": "main"
     },
     {
-      "@type": "cr:FileSet",
+      "@type": "https://schema.org/FileSet",
       "@id": "ABRA_aires_training_data",
-      "name": "training",
+      "name": "ABRA_Training_File_Set",
       "description": "repository of h5 training files hosted on the Open Science Data Federation.",
       "containedIn": {
         "@id": "data-repository"
       },
       "encodingFormat": "application/x-hdf5",
-      "includes": "abra_training_*.h5"
+      "http://mlcommons.org/schema/includes": ["abra_training_*.h5"]
     },
     {
-      "@type": "cr:FileSet",
+      "@type": "https://schema.org/FileSet",
       "@id": "ABRA_aires_validation_data",
-      "name": "validation",
+      "name": "ABRA_Validation_File_Set",
       "description": "repository of h5 validation files hosted on the Open Science Data Federation.",
       "containedIn": {
         "@id": "data-repository"
       },
       "encodingFormat": "application/x-hdf5",
-      "includes": "abra_validation_*.h5"
+      "http://mlcommons.org/schema/includes": ["abra_validation_*.h5"]
     },
     {
-      "@type": "cr:FileSet",
+      "@type": "https://schema.org/FileSet",
       "@id": "ABRA_aires_science_data",
-      "name": "science",
+      "name": "ABRA_Science_Data_File_Set",
       "description": "repository of h5 science files hosted on the Open Science Data Federation.",
       "containedIn": {
         "@id": "data-repository"
       },
       "encodingFormat": "application/x-hdf5",
-      "includes": "abra_science_*.h5"
+      "http://mlcommons.org/schema/includes": ["abra_science_*.h5"]
     }
   ],
   "recordSet": [
     {
       "@type": "cr:RecordSet",
       "@id": "training-h5",
-      "name": "abra_training",
       "field": [
         {
           "@type": "cr:Field",
           "@id": "training-h5/timeseries/channel0001/timeseries",
-          "name": "SQUID-TS",
           "description": "Time series data-set from SQUID",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "training-h5"
+              "@id": "ABRA_aires_training_data"
             },
             "extract": {
               "group": "/timeseries/channel0001/timeseries"
@@ -118,12 +82,11 @@
         {
           "@type": "cr:Field",
           "@id": "training-h5/timeseries/channel0001/sampling_frequency",
-          "name": "SQUID-sampling-frequency",
           "description": "Sampling frequency of the SQUID voltage.",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "training-h5"
+              "@id": "ABRA_aires_training_data"
             },
             "extract": {
               "group": "/timeseries/channel0001/timeseries",
@@ -134,12 +97,11 @@
         {
           "@type": "cr:Field",
           "@id": "training-h5/timeseries/channel0001/voltage_range_mV",
-          "name": "SQUID-voltage-range-mV",
           "description": "Voltage range of digitizer for the SQUID in units of mV.",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "training-h5"
+              "@id": "ABRA_aires_training_data"
             },
             "extract": {
               "group": "/timeseries/channel0001/timeseries",
@@ -150,12 +112,11 @@
         {
           "@type": "cr:Field",
           "@id": "training-h5/timeseries/channel0002/timeseries",
-          "name": "Injected-TS",
           "description": "Time series data-set from signal injection",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "training-h5"
+              "@id": "ABRA_aires_training_data"
             },
             "extract": {
               "group": "/timeseries/channel0002/timeseries"
@@ -165,12 +126,11 @@
         {
           "@type": "cr:Field",
           "@id": "training-h5/timeseries/channel0002/sampling_frequency",
-          "name": "Injected-sampling-frequency",
           "description": "Sampling frequency of the signal injection voltage.",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "training-h5"
+              "@id": "ABRA_aires_training_data"
             },
             "extract": {
               "group": "/timeseries/channel0002/timeseries",
@@ -181,12 +141,11 @@
         {
           "@type": "cr:Field",
           "@id": "training-h5/timeseries/channel0002/voltage_range_mV",
-          "name": "Injected-voltage-range-mV",
           "description": "Voltage range of digitizer for the signal injection in units of mV.",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "training-h5"
+              "@id": "ABRA_aires_training_data"
             },
             "extract": {
               "group": "/timeseries/channel0002/timeseries",
@@ -199,17 +158,15 @@
     {
       "@type": "cr:RecordSet",
       "@id": "validation-h5",
-      "name": "abra_validation",
       "field": [
         {
           "@type": "cr:Field",
           "@id": "validation-h5/timeseries/channel0001/timeseries",
-          "name": "SQUID-TS",
           "description": "Time series data-set from SQUID",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "validation-h5"
+              "@id": "ABRA_aires_validation_data"
             },
             "extract": {
               "group": "/timeseries/channel0001/timeseries"
@@ -219,12 +176,11 @@
         {
           "@type": "cr:Field",
           "@id": "validation-h5/timeseries/channel0001/sampling_frequency",
-          "name": "SQUID-sampling-frequency",
           "description": "Sampling frequency of the SQUID voltage.",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "validation-h5"
+              "@id": "ABRA_aires_validation_data"
             },
             "extract": {
               "group": "/timeseries/channel0001/timeseries",
@@ -235,12 +191,11 @@
         {
           "@type": "cr:Field",
           "@id": "validation-h5/timeseries/channel0001/voltage_range_mV",
-          "name": "SQUID-voltage-range-mV",
           "description": "Voltage range of digitizer for the SQUID in units of mV.",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "validation-h5"
+              "@id": "ABRA_aires_validation_data"
             },
             "extract": {
               "group": "/timeseries/channel0001/timeseries",
@@ -251,12 +206,11 @@
         {
           "@type": "cr:Field",
           "@id": "validation-h5/timeseries/channel0002/timeseries",
-          "name": "Injected-TS",
           "description": "Time series data-set from signal injection",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "validation-h5"
+              "@id": "ABRA_aires_validation_data"
             },
             "extract": {
               "group": "/timeseries/channel0002/timeseries"
@@ -266,12 +220,11 @@
         {
           "@type": "cr:Field",
           "@id": "validation-h5/timeseries/channel0002/sampling_frequency",
-          "name": "Injected-sampling-frequency",
           "description": "Sampling frequency of the signal injection voltage.",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "validation-h5"
+              "@id": "ABRA_aires_validation_data"
             },
             "extract": {
               "group": "/timeseries/channel0002/timeseries",
@@ -282,12 +235,11 @@
         {
           "@type": "cr:Field",
           "@id": "validation-h5/timeseries/channel0002/voltage_range_mV",
-          "name": "Injected-voltage-range-mV",
           "description": "Voltage range of digitizer for the signal injection in units of mV.",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "validation-h5"
+              "@id": "ABRA_aires_validation_data"
             },
             "extract": {
               "group": "/timeseries/channel0002/timeseries",
@@ -300,17 +252,15 @@
     {
       "@type": "cr:RecordSet",
       "@id": "science-h5",
-      "name": "abra_science",
       "field": [
         {
           "@type": "cr:Field",
           "@id": "science-h5/timeseries/channel0001/timeseries",
-          "name": "SQUID-TS",
           "description": "Time series data-set from SQUID",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "science-h5"
+              "@id": "ABRA_aires_science_data"
             },
             "extract": {
               "group": "/timeseries/channel0001/timeseries"
@@ -320,12 +270,11 @@
         {
           "@type": "cr:Field",
           "@id": "science-h5/timeseries/channel0001/sampling_frequency",
-          "name": "SQUID-sampling-frequency",
           "description": "Sampling frequency of the SQUID voltage.",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "science-h5"
+              "@id": "ABRA_aires_science_data"
             },
             "extract": {
               "group": "/timeseries/channel0001/timeseries",
@@ -336,12 +285,11 @@
         {
           "@type": "cr:Field",
           "@id": "science-h5/timeseries/channel0001/voltage_range_mV",
-          "name": "SQUID-voltage-range-mV",
           "description": "Voltage range of digitizer for the SQUID in units of mV.",
           "dataType": "sc:Integer",
           "source": {
             "fileSet": {
-              "@id": "science-h5"
+              "@id": "ABRA_aires_science_data"
             },
             "extract": {
               "group": "/timeseries/channel0001/timeseries",

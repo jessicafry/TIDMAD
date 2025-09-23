@@ -42,22 +42,23 @@ TIDMAD users could follow the procedure below to reprocued the result in our pap
 2. Set up the required environment using `python setup.py install`
 3. Train 3 deep learning models by running `python train.py -d [directory] -m [model]`
    * `[directory]` is where all the training files are downloaded to in step 1
-   * `[model]` is the deep learning model to train, user should choose from `[fcnet/punet/transformer]`.
-   * Note: for each deep learning model, 4 files will be produced due to Frequency Splitting discussed in the paper. (i.e. for `-m fcnet` there will be 4 files including `FCNet_0_4.pth`, `FCNet_4_10.pth`, `FCNet_10_15.pth`, `FCNet_15_20.pth`
+   * `[model]` is the deep learning model to train, user should choose from `[fcnet/punet/transformer/wavenet/rnn]`.
+   * Note: for each deep learning model, 4 files will be produced due to Frequency Splitting discussed in the paper. (i.e. for `-m fcnet` there will be 4 files including `FCNet_0_4.pth`, `FCNet_4_10.pth`, `FCNet_10_15.pth`, `FCNet_15_20.pth`)
+   * Alternatively, user could choose to run `python train_nosplit.py -d [directory] -m [model]` where Frequency Splitting is not applied. In this case, only one `.pth` file will be produced  (i.e. for `-m wavenet`, only one file `WaveNet_0_20.pth` will be produced).
 4. Run `python inference.py -d [directory] -m [model]` to produced denoised time series file in `.h5` format
    * `[directory]` is where all the validation files are downloaded to in step 1.
    * For each validation file `abra_validation_00{##}.h5`, a denoised validation file `abra_validation_denoised_[model]_00{##}.h5` will be generated. Please note that the denoised validation file will also be saved at `[directory]`.
-   * `[model]` is the denoising algorithm to run inference over, user should choose from `[mavg/savgol/fcnet/punet/transformer]`. If user choose one of `[fcnet/punet/transformer]`, the trained model file in `.pth` format must be present at current working directory. These `.pth` file can be generated following step 3 or downloaded directly.
+   * `[model]` is the denoising algorithm to run inference over, user should choose from `[mavg/savgol/fcnet/punet/transformer/wavenet/rnn]`. If user choose one of `[fcnet/punet/transformer/wavenet/rnn]`, the trained model file in `.pth` format must be present at current working directory. These `.pth` file can be generated following step 3 or downloaded directly.
 5. Run `python benchmark.py -d [directory] -m [model]`
    * `[directory]` is where all the validation files are downloaded to in step 1.
-   * `[model]` is the denoising algorithm used in step 4, user should choose from `[none/mavg/savgol/fcnet/punet/transformer]`. `none` calculates the denoising score for raw SQUID time series without any denoising. If any model other than `none` is chosen, user must make sure that the corresponding `abra_validation_denoised_[model]_00{##}.h5` was successfully produced in step 4.
+   * `[model]` is the denoising algorithm used in step 4, user should choose from `[none/mavg/savgol/fcnet/punet/transformer/wavenet/rnn]`. `none` calculates the denoising score for raw SQUID time series without any denoising. If any model other than `none` is chosen, user must make sure that the corresponding `abra_validation_denoised_[model]_00{##}.h5` was successfully produced in step 4.
    * `python benchmark.py` has additional arguments, including:
        * `-c --coarse`: calculate coarse denoising score instead of fine denoising score
        * `-p --parallel`: parallelize the runing of the score calculation script
        * `-w, --num_workers`: maximum number of workers allowed for the parallel processing 
 6. Run `python process_science_data.py -d [directory] -m [model]` to generate the denoised time series over the 208 science files provided.
    * `[directory]` is the directory of the input files. The file names should match the downloaded, raw science data files. Do not edit science file names.
-   * `[model]` is one of the three deep learning models developed: `punet`, `fcnet`, or `transformer`
+   * `[model]` is one of the five deep learning models developed: `punet`, `fcnet`, `transformer`, `wavenet`, `rnn`
    * **Note** the corresponding `.pth` files must be in the same directory as the `process_science_data.py` program.
    * The denoised science data will be outputed with the following file names:
        * `denoised_[PUNet/FCNet/Transformer]_[0/4/10/15]_[4/10/15/20]ph_file_[0000-0207].h5`

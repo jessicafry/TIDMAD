@@ -3,6 +3,10 @@ Code repository for TIDMAD: TIme series dataset for discovering Dark Matter with
 
 [Paper Pre-Print](https://arxiv.org/abs/2406.04378)
 
+[Hugging Face Data](https://huggingface.co/datasets/jessicafry/TIDMAD)
+
+[NeurIPS Spotlight Paper](https://neurips.cc/virtual/2025/poster/121748)
+
 ## Download Data
 The TIDMAD dataset can be downloaded using the `download_data.py` script provided in this GitHub repository. This script runs without any external dependencies. Data downloading is achieved by generating a series of wget commands and executing them in a Linux environment. `download_data.py` has the following arguments:
 * `--output_dir -o`: Destination directory where the file will be downloaded, default: current working directory.

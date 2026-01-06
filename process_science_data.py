@@ -47,7 +47,7 @@ output_size = input_size
 ADC_CHANNEL = 256
 
 def read_loader(ABRAfile):
-    alltrain = np.array(ABRAfile['timeseries']['channel0001']['timeseries'])+128
+    alltrain = np.array(ABRAfile['timeseries']['channel0001']['timeseries'])+np.array(128).astype('int8')
     #change the max_index to length of science data TS series 
     max_index = 4010000000
     alltrain = alltrain[:max_index].reshape( -1, batchsize, input_size)
@@ -142,10 +142,10 @@ def main(args):
         elif args.denoising_model == "fcnet":
             mname = "FCNet"
 
-        model1 = torch.load(f'{mname}_0_4.pth',map_location=DEVICE)
-        model2 = torch.load(f'{mname}_4_10.pth',map_location=DEVICE)
-        model3 = torch.load(f'{mname}_10_15.pth',map_location=DEVICE)
-        model4 = torch.load(f'{mname}_15_20.pth',map_location=DEVICE)
+        model1 = torch.load(f'{mname}_0_4.pth',map_location=DEVICE, weights_only = False)
+        model2 = torch.load(f'{mname}_4_10.pth',map_location=DEVICE, weights_only = False)
+        model3 = torch.load(f'{mname}_10_15.pth',map_location=DEVICE, weights_only = False)
+        model4 = torch.load(f'{mname}_15_20.pth',map_location=DEVICE, weights_only = False)
 
         model1.eval()
         model2.eval()
@@ -176,10 +176,10 @@ def main(args):
                 output_seq3 = model3(input_seq).argmax(dim=1)
                 output_seq4 = model4(input_seq).argmax(dim=1)
 
-            denoised1.append(np.int8(output_seq1.detach().cpu().numpy().flatten()-128))
-            denoised2.append(np.int8(output_seq2.detach().cpu().numpy().flatten()-128))
-            denoised3.append(np.int8(output_seq3.detach().cpu().numpy().flatten()-128))
-            denoised4.append(np.int8(output_seq4.detach().cpu().numpy().flatten()-128))
+            denoised1.append(np.int8(output_seq1.detach().cpu().numpy().flatten()-np.array(128).astype('int8')))
+            denoised2.append(np.int8(output_seq2.detach().cpu().numpy().flatten()-np.array(128).astype('int8')))
+            denoised3.append(np.int8(output_seq3.detach().cpu().numpy().flatten()-np.array(128).astype('int8')))
+            denoised4.append(np.int8(output_seq4.detach().cpu().numpy().flatten()-np.array(128).astype('int8')))
 
 		# These are 4 version of the denoised time series with parameters trained on different frequency ranges, change the note var to specify in saved file name
         process_denoised(denoised1, note = mname+'_0_4pth_file'+str(ifile))

@@ -51,8 +51,8 @@ def normalize(time_series):
     return time_series.mean(), time_series.std()
 
 def read_loader(ABRAfile):
-    alltrain = np.array(ABRAfile['timeseries']['channel0001']['timeseries'])+128
-    alltarget = np.array(ABRAfile['timeseries']['channel0002']['timeseries'])+128
+    alltrain = np.array(ABRAfile['timeseries']['channel0001']['timeseries'])+np.array(128).astype('int8')
+    alltarget = np.array(ABRAfile['timeseries']['channel0002']['timeseries'])+np.array(128).astype('int8')
 
     max_index = 2000000000
     alltrain = alltrain[:max_index].reshape( -1,sample_size, batchsize, input_size)

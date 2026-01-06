@@ -58,8 +58,8 @@ def normalize(time_series):
     return time_series.mean(), time_series.std()
 
 def read_loader(ABRAfile):
-	alltrain = np.array(ABRAfile['timeseries']['channel0001']['timeseries'])+128
-	alltarget = np.array(ABRAfile['timeseries']['channel0002']['timeseries'])+128
+	alltrain = np.array(ABRAfile['timeseries']['channel0001']['timeseries'])+np.array(128).astype('int8')
+	alltarget = np.array(ABRAfile['timeseries']['channel0002']['timeseries'])+np.array(128).astype('int8')
 
 	max_index = 2000000000
 	alltrain = alltrain[:max_index].reshape( -1,sample_size, batchsize, input_size)
@@ -95,15 +95,15 @@ class TIDMADDataset(Dataset):
         #     input_series = np.array(f['timeseries']['channel0001']['timeseries'])[start:end].reshape(batchsize, input_size)
         #     target_series = np.array(f['timeseries']['channel0002']['timeseries'])[start:end].reshape(batchsize, input_size)
 
-        return input_series.astype(np.int16)+128, target_series.astype(np.int16)+128
+        return input_series.astype(np.int16)+np.array(128).astype('int16'), target_series.astype(np.int16)+np.array(128).astype('int16')
 
     def return_time_channel(self):
         return (self.__getitem__(0)[0].shape[0], self.__getitem__(0)[0].shape[1])
 
     def pull_event_from_dir(self,filelist):
 
-        # alltrain = np.array(ABRAfile['timeseries']['channel0001']['timeseries'])+128
-        # alltarget = np.array(ABRAfile['timeseries']['channel0002']['timeseries'])+128
+        # alltrain = np.array(ABRAfile['timeseries']['channel0001']['timeseries'])+np.array(128).astype('int8')
+        # alltarget = np.array(ABRAfile['timeseries']['channel0002']['timeseries'])+np.array(128).astype('int8')
 
         # max_index = 2000000000
         # alltrain = alltrain[:max_index].reshape( -1,sample_size, batchsize, input_size)

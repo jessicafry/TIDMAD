@@ -87,8 +87,8 @@ def normalize(time_series):
     return time_series.mean(), time_series.std()
 
 def read_loader(ABRAfile):
-	alltrain = np.array(ABRAfile['timeseries']['channel0001']['timeseries'])+128
-	alltarget = np.array(ABRAfile['timeseries']['channel0002']['timeseries'])+128
+	alltrain = np.array(ABRAfile['timeseries']['channel0001']['timeseries'])+np.array(128).astype('int8')
+	alltarget = np.array(ABRAfile['timeseries']['channel0002']['timeseries'])+np.array(128).astype('int8')
 
 	max_index = 2000000000
 	alltrain = alltrain[:max_index].reshape( -1, batchsize, input_size)
@@ -125,7 +125,7 @@ def process_batch(index, inputarr, targetarr, model, args):
 		# Forward pass
 		input_seq = input_seq.long().to(DEVICE)
 		output_seq = model(input_seq).argmax(dim=1).detach().cpu().numpy()
-	return index, np.int8(output_seq-128).flatten(), np.int8(targetarr-128).flatten()
+	return index, np.int8(output_seq-np.array(128).astype('int8')).flatten(), np.int8(targetarr-np.array(128).astype('int8')).flatten()
 
 def main():
 	'''
@@ -166,22 +166,22 @@ def main():
 
 			if ifile >= low and (ifile < high):
 				if args.denoising_model == "punet":
-					model = torch.load(f'PUNet_{low}_{high}.pth',map_location=DEVICE)
+					model = torch.load(f'PUNet_{low}_{high}.pth',map_location=DEVICE, weights_only = False)
 					model.eval()
 				elif args.denoising_model == "transformer":
-					model = torch.load(f'Transformer_{low}_{high}.pth',map_location=DEVICE)
+					model = torch.load(f'Transformer_{low}_{high}.pth',map_location=DEVICE, weights_only = False)
 					model.eval()
 				elif args.denoising_model == "fcnet":
-					model = torch.load(f'FCNet_{low}_{high}.pth',map_location=DEVICE)
+					model = torch.load(f'FCNet_{low}_{high}.pth',map_location=DEVICE, weights_only = False)
 					model.eval()
 				elif args.denoising_model == "wavenet":
 					if NFreqSplit:
-						model = torch.load(f'WaveNet_0_20.pth',map_location=DEVICE)
+						model = torch.load(f'WaveNet_0_20.pth',map_location=DEVICE, weights_only = False)
 					else:
-						model = torch.load(f'WaveNet_{low}_{high}.pth',map_location=DEVICE)
+						model = torch.load(f'WaveNet_{low}_{high}.pth',map_location=DEVICE, weights_only = False)
 					model.eval()
 				elif args.denoising_model == "rnn":
-					model = torch.load(f'RNN_{low}_{high}.pth',map_location=DEVICE)
+					model = torch.load(f'RNN_{low}_{high}.pth',map_location=DEVICE, weights_only = False)
 					model.eval()
 				else:
 					'''

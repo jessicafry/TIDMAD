@@ -23,14 +23,14 @@ parser.add_argument('--data_dir', '-d', type=str, default="/home/klz/Data/TIDMAD
 parser.add_argument('--denoising_model', '-m', type=str, default='punet', help='Model to use [fcnet/punet/transformer/wavenet/rnn].')
 parser.add_argument('--file_index', '-i', type=int, default=0, help="Index for the validation file (abra_validation_XXXX.h5)")
 parser.add_argument('--parallel', '-p', action='store_true', help='Use multiprocessing for pre/post processing.')
+parser.add_argument('--input_size', '-s', type=int, default=40000, help='input size, need to match that in the training, default 40000')
+parser.add_argument('--batch_size', '-b', type=int, default=1, help='batch size for the validation, default 1')
 
 args = parser.parse_args()
 
 # Match the input_size used in your training script for consistency
-input_size = 40000 
-if args.denoising_model == "transformer":
-    input_size = 20000
-batchsize = 1
+input_size = args.input_size
+batchsize = args.batch_size
 
 # ==========================================
 # 2. Core Processing Logic

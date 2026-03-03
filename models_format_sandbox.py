@@ -60,7 +60,7 @@ class AEConfig(BaseConfig):
     Configuration for Fully Connected AutoEncoder.
     Designed for global feature compression and noise filtering.
     """
-    model_type: Literal["ae"] = "ae"
+    model_type: Literal["fcnet"] = "fcnet"
     # Agent can modify the depth and width by changing this list
     latent_dims: List[int] = Field(
         default=[4000, 400, 40], 

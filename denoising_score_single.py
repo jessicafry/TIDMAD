@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Mon June 2 2024
-@author: Jessica Fry, Aobo Li
 
-Modified for Single File Denoising Score calculation within the Sandbox.
-"""
 import numpy as np
 import h5py as h5
 import h5py
@@ -13,25 +8,25 @@ import logging
 import argparse
 import os
 import gc
+import json
 from tqdm import tqdm
 import concurrent.futures
 import math
 
 logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.ERROR)
 
-def GetOneSecPSD(file_path, files, ch, start = 0):
+def GetOneSecPSD(file_path, files, ch, start=0):
     file_list = []
-
-    if type(files) == list:
+    if isinstance(files, list):
         for f in files:
-            file_list.append(os.path.join(file_path,f))
+            file_list.append(os.path.join(file_path, f))
     elif files.endswith(".h5"):
-        file_list = [os.path.join(file_path,files)]
+        file_list = [os.path.join(file_path, files)]
     else:
         logging.error('Not acceptable data format!')
         
     N = 10000000
-    fileNum = start // 200 # Original logic assumes 200s per file
+    fileNum = start // 200 
     startIndex = N * (start % 200)
 
     file = file_list[fileNum]
@@ -45,7 +40,7 @@ def GetOneSecPSD(file_path, files, ch, start = 0):
         sampling_freq = h5f['timeseries']['channel0001'].attrs['sampling_frequency']
 
         scaling = np.float32(volt_range/(2*128.0))
-        TS = np.array(data, dtype= np.float32)*scaling
+        TS = np.array(data, dtype=np.float32)*scaling
         dt = 1.0 / sampling_freq
 
         psd_chunk = dt/N*(abs(np.fft.rfft(TS))**2)[1:]
@@ -60,7 +55,7 @@ def findPeak(pwr):
     peakIndex = int(np.where(peakdiff==np.amax(peakdiff))[0][0])+1
     return peakIndex
     
-def getSNR(freq, pwr, target = 0):
+def getSNR(freq, pwr, target=0):
     if target == 0:
         center_id = findPeak(pwr)
     else:
@@ -83,7 +78,7 @@ def process_iteration(i, path, file, coarse):
     return i, snr_sg, snr_squid
 
 def calculateBenchmark(path, file, args):
-    if type(file) == list:
+    if isinstance(file, list):
         file_to_open = os.path.join(path, file[0])
     else:
         file_to_open = os.path.join(path, file)
@@ -117,41 +112,55 @@ def calculateBenchmark(path, file, args):
     return math.log(score, 5.27)
 
 # ==========================================
-# Parser Definitions (Kept exactly as requested)
+# 1. Parser (Updated for Mode alignment)
 # ==========================================
-parser = argparse.ArgumentParser(description="Calculate Benchmark 1: Denoising Score using the produced files from inference.py")
-parser.add_argument('--data_dir', '-d', type=str, default="/home/klz/Data/TIDMAD/", help='Directory where the training file is stored.')
-parser.add_argument('--denoising_model', '-m', type=str, default='punet', help='Denoising model [none/savgol/mavg/punet/transformer].')
-parser.add_argument('-c', '--coarse', action='store_true', help='Running a coarse scan instead of fine scan.')
-parser.add_argument('-p', '--parallel', action='store_true', help='Running with multiprocessing.')
-parser.add_argument('-n', '--num_workers', type=int, default=8, help='maximum number of workers, default: 8')
-parser.add_argument('--delete_files', action='store_true', help='Delete validation files after running.')
-parser.add_argument('-w', '--weak', action='store_true', help='validate on weak version (10mV)')
-parser.add_argument('--file_index', '-i', type=int, default=0, help="Index for the single file to be loaded")
+parser = argparse.ArgumentParser(description="Calculate Denoising Score for Fix or Agent mode.")
+parser.add_argument('--mode', type=str, choices=['fix', 'agent'], default='fix', help='Run calculation for baseline (fix) or Agent results.')
+parser.add_argument('--data_dir', '-d', type=str, default="/home/klz/Data/TIDMAD/")
+parser.add_argument('--denoising_model', '-m', type=str, default='punet')
+parser.add_argument('--exp_id', type=str, default="default_run", help="Experiment ID (Required for Agent mode)")
+parser.add_argument('--file_index', '-i', type=int, default=0)
+parser.add_argument('-c', '--coarse', action='store_true')
+parser.add_argument('-p', '--parallel', action='store_true')
+parser.add_argument('-n', '--num_workers', type=int, default=8)
+parser.add_argument('-w', '--weak', action='store_true')
+parser.add_argument('--output_json', type=str, help="Optional: Path to update experiment results with score")
 
 args = parser.parse_args()
 
-# Single file targeting logic based on file_index
-if args.weak:
-    actual_index = args.file_index + 20
-else:
-    actual_index = args.file_index
+# Index logic
+actual_index = args.file_index + 20 if args.weak else args.file_index
+idx_str = str(actual_index).zfill(4)
 
-# Construct the filename consistent with your naming convention
-fname = f"abra_validation_denoised_{args.denoising_model}_{str(actual_index).zfill(4)}.h5"
+# ==========================================
+# 2. Filename Construction (Consistent with inference_single.py)
+# ==========================================
 if args.denoising_model == "none":
-    fname = f"abra_validation_{str(actual_index).zfill(4)}.h5"
+    fname = f"abra_validation_{idx_str}.h5"
+elif args.mode == 'fix':
+    # Baseline: abra_validation_denoised_punet_0000.h5
+    fname = f"abra_validation_denoised_{args.denoising_model}_{idx_str}.h5"
+else:
+    # Agent: abra_validation_denoised_punet_exp1_0000.h5
+    fname = f"abra_validation_denoised_{args.denoising_model}_{args.exp_id}_{idx_str}.h5"
 
 full_path = os.path.join(args.data_dir, fname)
 
+# ==========================================
+# 3. Calculation and Logging
+# ==========================================
 if os.path.exists(full_path):
-    print(f"Calculating score for: {fname}")
+    print(f"Calculating score for [{args.mode.upper()}] mode: {fname}")
     score = calculateBenchmark(args.data_dir, [fname], args)
-    is_coarse = "Coarse" if args.coarse else "Fine"
-    print(f"\n{fname} {is_coarse} Denoising Score: {score:.4f}")
+    print(f"\nFinal Denoising Score: {score:.4f}")
     
-    if args.delete_files:
-        os.remove(full_path)
-        print(f"Deleted: {full_path}")
+    # Optional: Update JSON results for the Agent
+    if args.output_json and os.path.exists(args.output_json):
+        with open(args.output_json, 'r') as f:
+            data = json.load(f)
+        data['denoising_score'] = score
+        with open(args.output_json, 'w') as f:
+            json.dump(data, f, indent=4)
+        print(f"Updated {args.output_json} with score.")
 else:
     print(f"Error: File not found at {full_path}")

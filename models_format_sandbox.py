@@ -149,6 +149,10 @@ class TrainConfig(BaseModel):
     """
     lr: float = Field(default=1e-4, ge=1e-6, le=1e-1)
     epochs: int = Field(default=10, ge=1, le=100)
+    # --- Add these two fields ---
+    batch_size: int = Field(default=1, ge=1, le=128, description="Batch size for training")
+    experiment_id: str = Field(default="default_run", description="Unique ID for this experiment")
+    # ----------------------------
     optimizer_type: Literal["adam", "adamw", "sgd"] = "adamw"
     weight_decay: float = Field(default=1e-5, ge=0, le=1e-1)
     device: str = "cuda" # or "cpu"

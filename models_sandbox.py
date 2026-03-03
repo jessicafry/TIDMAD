@@ -232,20 +232,24 @@ class PositionalUNet(nn.Module):
     def forward(self, x):
         x = self.embedding(x).transpose(-1, -2)
         x = self.pe_in(x)
+        
+        # 1. Input layer and first skip
         x1 = self.pe_inc(self.inc(x))
-
         # store intermediate result for Skip Connection
         skip_outputs = [x1]
-        
-        # Downward
+
+        # 2. Downward path
         curr_x = x1
-        for i in range(self.depth):
+        for i in range(self.depth - 1): # Only store until the second to last layer
             curr_x = self.downs[i](curr_x)
             curr_x = self.pe_downs[i](curr_x)
-            if i < self.depth - 1: 
-                skip_outputs.append(curr_x)
+            skip_outputs.append(curr_x)
 
-        # Upward
+        # 3. Bottom layer (no skip storage)
+        curr_x = self.downs[-1](curr_x)
+        curr_x = self.pe_downs[-1](curr_x)
+
+        # 4. Upward path
         for i in range(self.depth):
             skip_x = skip_outputs.pop()
             curr_x = self.ups[i](curr_x, skip_x)

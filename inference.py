@@ -52,7 +52,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 parser = argparse.ArgumentParser(description="Run time series denoising algorithm over the full validation dataset to produce denoised SQUID time series.")
 
 # Output directory with default as current directory
-parser.add_argument('--data_dir', '-d', type=str, default=os.path.join(os.getcwd(),"Data"), help='Directory where the training file is stored (default: current working directory).')
+parser.add_argument('--data_dir', '-d', type=str, default="/home/klz/Data/TIDMAD/", help='Directory where the training file is stored (default: current working directory).')
 parser.add_argument('--denoising_model', '-m', type=str, default='punet', help='Denoising model we would like to train [mavg/savgol/fcnet/punet/transformer] (Default: punet).')
 parser.add_argument('--window_size', '-ws', type=int, default= 100)
 parser.add_argument('--savgol_order', '-so', type=int, default=11)
@@ -66,8 +66,8 @@ args = parser.parse_args()
 NON_ML = False
 NFreqSplit = True
 #set number of training batches and input ouput size
-input_size = 40000
-batchsize = 25 # input_size//batchsize is the length of each time series
+input_size = 500000
+batchsize = 1 # input_size//batchsize is the length of each time series
 if args.denoising_model == "baseline":
 	input_size = 10000000
 	batchsize = 10
@@ -87,8 +87,8 @@ def normalize(time_series):
     return time_series.mean(), time_series.std()
 
 def read_loader(ABRAfile):
-	alltrain = np.array(ABRAfile['timeseries']['channel0001']['timeseries'])+128
-	alltarget = np.array(ABRAfile['timeseries']['channel0002']['timeseries'])+128
+	alltrain = np.array(ABRAfile['timeseries']['channel0001']['timeseries'])
+	alltarget = np.array(ABRAfile['timeseries']['channel0002']['timeseries'])
 
 	max_index = 2000000000
 	alltrain = alltrain[:max_index].reshape( -1, batchsize, input_size)
@@ -97,6 +97,8 @@ def read_loader(ABRAfile):
 	return np.concatenate([alltrain,alltarget],axis=1)
 
 def process_batch(index, inputarr, targetarr, model, args):
+	inputarr = inputarr.astype(np.int16) +128
+	targetarr = targetarr.astype(np.int16) +128
 	if args.denoising_model == "baseline":
 		# Size of moving average kernel
 		# print("i",inputarr.shape)
@@ -125,7 +127,7 @@ def process_batch(index, inputarr, targetarr, model, args):
 		# Forward pass
 		input_seq = input_seq.long().to(DEVICE)
 		output_seq = model(input_seq).argmax(dim=1).detach().cpu().numpy()
-	return index, np.int8(output_seq-128).flatten(), np.int8(targetarr-128).flatten()
+	return index, (output_seq-128).flatten(), (targetarr-128).flatten()
 
 def main():
 	'''
@@ -176,7 +178,7 @@ def main():
 					model.eval()
 				elif args.denoising_model == "wavenet":
 					if NFreqSplit:
-						model = torch.load(f'WaveNet_0_20.pth',map_location=DEVICE)
+						model = torch.load(f'WaveNet_0_20.pth',map_location=DEVICE, weights_only=False)
 					else:
 						model = torch.load(f'WaveNet_{low}_{high}.pth',map_location=DEVICE)
 					model.eval()

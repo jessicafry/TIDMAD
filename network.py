@@ -175,7 +175,7 @@ class PositionalUNet(nn.Module):
         return output
 
 class FocalLoss1D(nn.Module):
-    def __init__(self, alpha=0.25, gamma=2.0, reduction='mean'):
+    def __init__(self, alpha=0.5, gamma=2.0, reduction="mean"):
         super(FocalLoss1D, self).__init__()
         self.alpha = alpha
         self.gamma = gamma
@@ -201,7 +201,47 @@ class FocalLoss1D(nn.Module):
             return loss.sum()
         else:
             return loss
+
+
+
+class FocalLoss1DCW(nn.Module):
+    def __init__(self, alpha=None, gamma=4.0, reduction='mean', class_weights=None):
+        super(FocalLoss1DCW, self).__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.reduction = reduction
         
+        # Ensure class_weights is a tensor
+        if class_weights is not None:
+            self.register_buffer('class_weights', torch.as_tensor(class_weights, dtype=torch.float32))
+        else:
+            self.class_weights = None
+    
+    def forward(self, inputs, targets):
+        log_pt = F.log_softmax(inputs, dim=1)
+        pt = torch.exp(log_pt)
+        
+        targets_one_hot = F.one_hot(targets, num_classes=inputs.shape[1]).permute(0, 2, 1).float()
+        
+        # Use class-weighted alpha
+        if self.class_weights is not None:
+            # Reshape to [1, num_classes, 1] to broadcast correctly
+            weights = self.class_weights.view(1, -1, 1)
+            alpha_t = weights * targets_one_hot + (1 - weights) * (1 - targets_one_hot)
+        else:
+            alpha_t = self.alpha * targets_one_hot + (1 - self.alpha) * (1 - targets_one_hot)
+        
+        loss = -alpha_t * ((1 - pt) ** self.gamma) * log_pt
+        loss = (targets_one_hot * loss).sum(dim=1)
+        
+        if self.reduction == 'mean':
+            return loss.mean()
+        elif self.reduction == 'sum':
+            return loss.sum()
+        else:
+            return loss
+
+
         
 class TransformerModel(nn.Module):
 

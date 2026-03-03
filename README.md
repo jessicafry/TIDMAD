@@ -26,7 +26,7 @@ Alternatively, you can use the `filelist.dat` file, which contains the wget comm
 The dataset includes 248 files (288 if the weak signal version is included), all in HDF5 format. Dataset composition is specified in `TIDMAD_croissant.json`. The dataset is partitioned into three subsets:
 1. Training Dataset: `abra_training_00{##}.h5` where ## varies from 00 to 19
    * Each training `.h5` file has the following format:<br><img width="274" alt="abra_training_structure" src="images/abra_training.png">
-2. Training Dataset: `abra_validation_00{##}.h5` where ## varies from 00 to 19
+2. Validation Dataset: `abra_validation_00{##}.h5` where ## varies from 00 to 19
    * Each validation `.h5` file has the following format:<br><img width="279" alt="abra_validation_structure" src="images/abra_validation.png">
 2. Science Dataset: `abra_science_0{###}.h5` where ### varies from 000 to 207
    * Each science `.h5` file has the following format:<br><img width="273" alt="abra_science_structure" src="images/abra_science.png">

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, field_validator, model_validator
-from typing import List, Literal, Optional, Union
+from typing import List, Literal, Optional, Union, Type
 
 # ==========================================
 # 1. Base Configuration
@@ -84,7 +84,7 @@ class AEConfig(BaseConfig):
 # Union type for the Agent to choose from
 ModelConfigUnion = Union[PUNetConfig, AEConfig]
 
-def get_config_class(model_type: str):
+def get_config_class(model_type: str) -> Optional[Type[BaseConfig]]:
     """Helper for the Orchestrator to map strings to Pydantic classes."""
     mapping = {
         "punet": PUNetConfig,
@@ -149,9 +149,8 @@ class TrainConfig(BaseModel):
     """
     lr: float = Field(default=1e-4, ge=1e-6, le=1e-1)
     epochs: int = Field(default=10, ge=1, le=100)
-    # --- Add these two fields ---
+    # --- Add batch ---
     batch_size: int = Field(default=1, ge=1, le=128, description="Batch size for training")
-    experiment_id: str = Field(default="default_run", description="Unique ID for this experiment")
     # ----------------------------
     optimizer_type: Literal["adam", "adamw", "sgd"] = "adamw"
     weight_decay: float = Field(default=1e-5, ge=0, le=1e-1)

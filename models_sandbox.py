@@ -268,63 +268,37 @@ class AE(nn.Module):
     """
     def __init__(self, config: AEConfig, loss_type: str = "ce"):
         super().__init__()
-        
         self.input_dim = config.segmentation_size
-        self.adc_channels = 256
+        self.loss_type = loss_type
         dims = config.latent_dims
         
-        # 1. Build Encoder Path
         encoder_modules = []
         last_dim = self.input_dim
         for d in dims:
             encoder_modules.append(nn.Linear(last_dim, d))
             encoder_modules.append(nn.ReLU())
-            if config.dropout > 0:
-                encoder_modules.append(nn.Dropout(config.dropout))
+            if config.dropout > 0: encoder_modules.append(nn.Dropout(config.dropout))
             last_dim = d
-        
-        # We keep the last ReLU for the encoder's latent state
         self.encoder = nn.Sequential(*encoder_modules)
         
-        # 2. Build Decoder Path
         decoder_modules = []
-        # Reverse the latent_dims for decoding (e.g., [40, 400, 4000])
         reversed_dims = dims[::-1][1:] + [self.input_dim]
-        
         for d in reversed_dims:
             decoder_modules.append(nn.Linear(last_dim, d))
-            # No ReLU for the final reconstruction layer before ADC projection
             if d != self.input_dim:
                 decoder_modules.append(nn.ReLU())
             last_dim = d
-            
         self.decoder_base = nn.Sequential(*decoder_modules)
         
-        # 3. Final Projection to ADC Classification Space
-        # Output shape should be [Batch, 256, Time] to match UNet
-        self.loss_type = loss_type
-        self.out_channels = 1 if loss_type == "smooth_l1" else 256
-        self.outc = nn.Conv1d(1, self.out_channels, kernel_size=1)
+        if self.loss_type != "smooth_l1":
+            self.outc = nn.Conv1d(1, 256, kernel_size=1)
 
     def forward(self, x):
-        """
-        Input x: [Batch, Time] (Integer ADC values)
-        Output: [Batch, 256, Time] (Probabilities for each ADC level)
-        """
-        # Linear layers expect float input: [Batch, Time]
         x_float = x.float()
-        
-        # Pass through the global fully connected bottleneck
         latent = self.encoder(x_float)
-        reconstructed = self.decoder_base(latent) # Shape: [Batch, Time]
-        
-        # Reshape to [Batch, 1, Time] to apply Conv1d for ADC channel expansion
-        reconstructed = reconstructed.unsqueeze(1)
-        
-        # Final projection to [Batch, 256, Time]
-        output = self.outc(reconstructed)
-        
+        reconstructed = self.decoder_base(latent) # [Batch, Time]
+
         if self.loss_type == "smooth_l1":
-            return output.squeeze(1)
+            return reconstructed
         
-        return output
+        return self.outc(reconstructed.unsqueeze(1))

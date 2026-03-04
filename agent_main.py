@@ -38,10 +38,14 @@ def main():
     parser.add_argument("--force_model", type=str, choices=["punet", "fcnet", "auto"], default="auto",
                         help="Force a specific architecture or let the agent decide (auto).")
     
+    # Project Name
+    parser.add_argument("--run_name", type=str,  default="test_run",
+                        help="Run name for the auto-exploration.")
+    
     args = parser.parse_args()
 
     # Initialize "Body" (Sandbox) and "Brain" (LLM Bridge)
-    sandbox = TidmadSandbox(metadata_source="local")
+    sandbox = TidmadSandbox(metadata_source="local", run_name = args.run_name)
     brain = LLMBridge(provider=args.provider, model_id=args.model_id)
     
     print(f"=== 🧠 TIDMAD Agent Activated ===")
@@ -112,6 +116,7 @@ def main():
                 "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
                 "params": active_params,
                 "results": score_res["results"],
+                "denoising_score": score_res["denoising_score"],
                 "memory": {
                     "expert_advice_followed": args.expert_advice,
                     "hypothesis": hypothesis,

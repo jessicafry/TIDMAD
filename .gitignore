@@ -7,7 +7,7 @@ __pycache__/
 tidmad/
 venv/
 env/
-.env
+.env/
 
 # Data and Binary files 
 *.npy

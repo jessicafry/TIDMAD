@@ -25,7 +25,7 @@ class TidmadRecorder:
             record["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # 2. Save Detailed Individual Record
-        # Path: sandbox_env/records/exp_NNN.json
+        # Path: TIDMAD_Sandbox/records/exp_NNN.json
         exp_id = record.get("exp_id", f"unknown_{int(datetime.now().timestamp())}")
         detailed_path = os.path.join(self.records_dir, f"{exp_id}.json")
         
@@ -34,7 +34,7 @@ class TidmadRecorder:
         print(f"📄 Detailed record saved to: {detailed_path}")
 
         # 3. Update Global Summary (The Agent's Memory)
-        # Path: sandbox_env/summary.json
+        # Path: TIDMAD_Sandbox/summary.json
         history = self.get_summary()
         
         # Check if we are updating an existing entry or adding a new one

@@ -109,14 +109,20 @@ def main():
             print(f"{'-'*30}")
 
             # E. COMMIT: Save the finalized multi-modal record
+            combined_results = {}
+            if "results" in train_status:
+                combined_results.update(train_status["results"]) 
+            if "results" in score_res:
+                combined_results.update(score_res["results"]) 
+                
             final_record = {
                 "exp_id": exp_id,
                 "status": "success", 
                 "model_type": model_type,
                 "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
                 "params": active_params,
-                "results": score_res["results"],
-                "denoising_score": score_res["denoising_score"],
+                "results": combined_results,
+                "denoising_score": combined_results.get("denoising_score"), 
                 "memory": {
                     "expert_advice_followed": args.expert_advice,
                     "hypothesis": hypothesis,
@@ -126,9 +132,9 @@ def main():
                 }
             }
             
-            # Using the new unified save_record interface in TidmadSandbox
             sandbox.save_record(final_record)
-            print(f"✅ Round {iteration} Complete. Score: {score_res['results'].get('total_score')}")
+            
+            print(f"✅ Round {iteration} Complete. Score: {combined_results.get('denoising_score', 'N/A')}")
 
             # Cool-down to avoid API rate limits
             time.sleep(2)

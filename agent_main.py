@@ -52,6 +52,15 @@ def main():
     print(f"🤖 Provider: {args.provider} | Model: {args.model_id}")
     print(f"👨‍🔬 Expert Advice: {args.expert_advice}")
     print(f"🔢 Max Rounds: {args.max_rounds} | Strategy: {args.force_model}")
+    
+    # --- 💡 Get the config manual before starting---
+    print(f"📖 Reading model configuration manual...")
+    config_manual = run_skill("check_config_format_skill", sandbox)
+    if config_manual["status"] == "success":
+        # pass to brain.plan later
+        config_manual_data = config_manual["data"]
+    else:
+        raise ValueError("Config Manual not provided.")
 
     # --- 2. Autonomous Research Loop ---
     for iteration in range(1, args.max_rounds + 1):
@@ -65,7 +74,8 @@ def main():
             decision = brain.plan(
                 memory_history, 
                 expert_advice=args.expert_advice, 
-                force_model=args.force_model
+                force_model=args.force_model,
+                config_manual=config_manual_data,
             )
             
             exp_id = decision.get("exp_id", f"exp_{iteration}_{int(time.time())}")
@@ -79,6 +89,7 @@ def main():
             # C. ACT: Execute the Atomic Skill Pipeline (Train -> Inf -> Score)
             active_params = {
                 "exp_id": exp_id,
+                "run_name": args.run_name,
                 "model_type": model_type,
                 "model_config": decision.get("model_config", {}),
                 "train_config": decision.get("train_config", {}),

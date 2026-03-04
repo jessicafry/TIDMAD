@@ -29,6 +29,7 @@ parser.add_argument('--parallel', '-p', action='store_true')
 
 # Agent Mode Specific Args
 parser.add_argument('--model_cfg', type=str, help="Required for Agent mode: Path to model config JSON")
+parser.add_argument('--loss_cfg', type=str, help="Explicit path to loss config JSON. If not provided, inferred from model_cfg.")
 parser.add_argument('--exp_id', type=str, default="default_run", help="Experiment ID from Train Engine")
 parser.add_argument('--model_path', type=str, help="Path to the .pth state_dict from Train Engine")
 
@@ -36,40 +37,52 @@ args = parser.parse_args()
 
 def process_batch(index, inputarr, targetarr, model, args):
     """
-    Handles dimension alignment dynamically for different model types.
+    Handles dimension alignment and output decoding dynamically.
     """
     # 1. Prepare base tensors
     inputarr = inputarr.astype(np.int16) + 128
     targetarr = targetarr.astype(np.int16) + 128
-    
-    # input_seq from main loop is likely [1, 1, Time]
     input_seq = torch.from_numpy(inputarr)
 
-    # 2. Dynamic Squeezing/Unsqueezing based on Architecture
-    # Check if the model starts with an Embedding layer (like your new PUNet)
+    # 2. Dynamic Squeezing (Align with your PositionalUNet/AE expectations)
     has_embedding = hasattr(model, 'embedding') and isinstance(model.embedding, nn.Embedding)
-    # Check if it's an AE or FCNet (Linear layers)
     is_linear_based = isinstance(model, AE) or args.denoising_model == "fcnet"
 
     if has_embedding or is_linear_based:
-        # These models expect [Batch, Time] (2D)
-        # Squeeze out the extra 'channel' dimension if present: [1, 1, 40000] -> [1, 40000]
         if input_seq.dim() == 3:
             input_seq = input_seq.squeeze(1)
     else:
-        # Baseline models or Conv-first models usually expect [Batch, 1, Time] (3D)
-        # Ensure it has 3 dimensions
         if input_seq.dim() == 2:
             input_seq = input_seq.unsqueeze(1)
 
-    # 3. Execution
+    # 3. Execution & Output Decoding
+    # Move to device and cast based on model requirements
     if is_linear_based:
         input_seq = input_seq.float().to(DEVICE)
-        output_seq = model(input_seq).detach().cpu().numpy()
     else:
-        # For Classification (PUNet etc.)
         input_seq = input_seq.long().to(DEVICE)
-        output_seq = model(input_seq).argmax(dim=1).detach().cpu().numpy()
+
+    with torch.no_grad():
+        output = model(input_seq)
+        
+        # --- NEW DECODING LOGIC ---
+        # 1. Check if model is in Regression Mode (loss_type="smooth_l1")
+        # Regression models output [Batch, Time] directly
+        if hasattr(model, 'loss_type') and model.loss_type == "smooth_l1":
+            output_seq = output.detach().cpu().numpy()
+        
+        # 2. Check if model is a Classification model (Categorical Output)
+        # Classification models output [Batch, 256, Time]
+        elif output.dim() == 3 and output.size(1) == 256:
+            output_seq = output.argmax(dim=1).detach().cpu().numpy()
+            
+        # 3. Fallback for Baseline models (Fix Mode)
+        else:
+            # Baseline AE might output [Batch, Time] but doesn't have loss_type attribute
+            output_seq = output.detach().cpu().numpy() if is_linear_based else \
+                         output.argmax(dim=1).detach().cpu().numpy()
+        # --------------------------
+        
     return index, (output_seq - 128).flatten(), (targetarr - 128).flatten()
 
 def main():
@@ -93,16 +106,31 @@ def main():
         if not args.model_cfg or not args.model_path:
             raise ValueError("Agent mode requires --model_cfg and --model_path")
         
-        # Load Config to get dynamic architecture
+        # 1. prioritize explicit loss_cfg, otherwise infer from the model config
+        if args.loss_cfg:
+            loss_cfg_path = args.loss_cfg
+            print(f"Using explicit loss config: {loss_cfg_path}")
+        else:
+            loss_cfg_path = args.model_cfg.replace("model", "loss")
+            print(f"Inferred loss config: {loss_cfg_path}")
+
         with open(args.model_cfg, 'r') as f:
             m_data = json.load(f)
+            
+        if not os.path.exists(loss_cfg_path):
+            raise FileNotFoundError(f"Loss config not found at {loss_cfg_path}. Please provide --loss_cfg explicitly.")
+            
+        with open(loss_cfg_path, 'r') as f:
+            l_data = json.load(f)
         
+        current_loss_type = l_data.get("loss_type", "ce")
+
         if args.denoising_model == "punet":
             m_cfg = PUNetConfig(**m_data)
-            model = PositionalUNet(m_cfg).to(DEVICE)
+            model = PositionalUNet(m_cfg, loss_type=current_loss_type).to(DEVICE) 
         else:
             m_cfg = AEConfig(**m_data)
-            model = AE(m_cfg).to(device)
+            model = AE(m_cfg, loss_type=current_loss_type).to(DEVICE)
             
         # Load state_dict (weight only) from Train Engine
         model.load_state_dict(torch.load(args.model_path, map_location=DEVICE))

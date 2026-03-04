@@ -266,7 +266,7 @@ class AE(nn.Module):
     - Final output layer projects back to ADC channel space (256) 
       to match the PositionalUNet's classification behavior.
     """
-    def __init__(self, config: AEConfig):
+    def __init__(self, config: AEConfig, loss_type: str = "ce"):
         super().__init__()
         
         self.input_dim = config.segmentation_size
@@ -302,7 +302,9 @@ class AE(nn.Module):
         
         # 3. Final Projection to ADC Classification Space
         # Output shape should be [Batch, 256, Time] to match UNet
-        self.outc = nn.Conv1d(1, self.adc_channels, kernel_size=1)
+        self.loss_type = loss_type
+        self.out_channels = 1 if loss_type == "smooth_l1" else 256
+        self.outc = nn.Conv1d(1, self.out_channels, kernel_size=1)
 
     def forward(self, x):
         """
@@ -321,5 +323,8 @@ class AE(nn.Module):
         
         # Final projection to [Batch, 256, Time]
         output = self.outc(reconstructed)
+        
+        if self.loss_type == "smooth_l1":
+            return output.squeeze(1)
         
         return output

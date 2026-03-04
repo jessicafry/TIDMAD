@@ -116,7 +116,7 @@ def run_experiment(model_cfg, train_cfg: TrainConfig, loss_cfg: LossConfig, data
     if isinstance(model_cfg, PUNetConfig):
         model = PositionalUNet(model_cfg).to(device)
     elif isinstance(model_cfg, AEConfig):
-        model = AE(model_cfg).to(device)
+        model = AE(model_cfg, loss_type=loss_cfg.loss_type).to(device)
     else:
         raise ValueError("Invalid model configuration type provided.")
 
@@ -146,7 +146,7 @@ def run_experiment(model_cfg, train_cfg: TrainConfig, loss_cfg: LossConfig, data
             target_seq = target_batch.to(device) # Shape: [batch_size, seg_size]
 
             # Type conversion and channel unsqueeze if necessary
-            if model_cfg.model_type != "ae":
+            if model_cfg.model_type != "fcnet":
                 # PUNet expects [Batch, Time] (integers) which it then embeds to [Batch, Time, Emb]
                 # Then transposes to [Batch, Emb, Time] internally.
                 input_seq = input_seq.int()
@@ -212,7 +212,7 @@ def main():
     # Convert to Pydantic Objects (Triggers Validation)
     if m_data.get("model_type") == "punet":
         model_cfg = PUNetConfig(**m_data)
-    elif m_data.get("model_type") == "ae":
+    elif m_data.get("model_type") == "fcnet":
         model_cfg = AEConfig(**m_data)
     else:
         raise ValueError("Unknown model_type in config.")

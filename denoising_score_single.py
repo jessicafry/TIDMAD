@@ -119,6 +119,7 @@ parser.add_argument('--mode', type=str, choices=['fix', 'agent'], default='fix',
 parser.add_argument('--data_dir', '-d', type=str, default="/home/klz/Data/TIDMAD/")
 parser.add_argument('--denoising_model', '-m', type=str, default='punet')
 parser.add_argument('--exp_id', type=str, default="default_run", help="Experiment ID (Required for Agent mode)")
+parser.add_argument("--run_name", type=str,  default="test_run", help="Run name for the auto-exploration.")
 parser.add_argument('--file_index', '-i', type=int, default=0)
 parser.add_argument('-c', '--coarse', action='store_true')
 parser.add_argument('-p', '--parallel', action='store_true')
@@ -142,7 +143,7 @@ elif args.mode == 'fix':
     fname = f"abra_validation_denoised_{args.denoising_model}_{idx_str}.h5"
 else:
     # Agent: abra_validation_denoised_punet_exp1_0000.h5
-    fname = f"abra_validation_denoised_{args.denoising_model}_{args.exp_id}_{idx_str}.h5"
+    fname = f"abra_validation_denoised_{args.denoising_model}_{args.run_name}_{args.exp_id}_{idx_str}.h5"
 
 full_path = os.path.join(args.data_dir, fname)
 

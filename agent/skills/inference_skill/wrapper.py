@@ -8,6 +8,7 @@ def run_skill(sandbox: TidmadSandbox, **kwargs):
     
     return sandbox.execute_inference(
         exp_id=kwargs["exp_id"],
+        run_name=kwargs["run_name"],
         model_type=kwargs["model_type"],
         m_cfg=kwargs["model_config"],
         l_cfg=kwargs["loss_config"]

@@ -113,7 +113,7 @@ class TidmadSandbox:
         except Exception as e:
             raise ValueError(f"Configuration Validation Failed: {str(e)}")
 
-    def execute_training(self, exp_id: str, model_type: str, m_cfg: Dict, t_cfg: Dict, l_cfg: Dict):
+    def execute_training(self, exp_id: str, run_name: str, model_type: str, m_cfg: Dict, t_cfg: Dict, l_cfg: Dict):
         """Executes the training physical script."""
         try:
             vm, vt, vl = self._validate_configs(model_type, m_cfg, t_cfg, l_cfg)
@@ -132,7 +132,8 @@ class TidmadSandbox:
                     "--model_cfg", paths["m"], 
                     "--train_cfg", paths["t"], 
                     "--loss_cfg", paths["l"],
-                    "--exp_id", exp_id],
+                    "--exp_id", exp_id,
+                    "--run_name", run_name,],
                     check=True, 
                     capture_output=True, 
                     text=True,
@@ -149,7 +150,7 @@ class TidmadSandbox:
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
-    def execute_inference(self, exp_id: str, model_type: str, m_cfg: Dict, l_cfg: Dict):
+    def execute_inference(self, exp_id: str, run_name: str, model_type: str, m_cfg: Dict, l_cfg: Dict):
         """Executes the inference physical script."""
         m_path = os.path.abspath(os.path.join(self.dirs["configs"], f"test_model_{exp_id}.json"))
         l_path = os.path.abspath(os.path.join(self.dirs["configs"], f"test_loss_{exp_id}.json"))
@@ -160,7 +161,7 @@ class TidmadSandbox:
             result = subprocess.run(
                 ["python", "inference_single.py", "--mode", "agent", "-m", model_type, 
                  "--model_cfg", m_path, "--loss_cfg", l_path, 
-                 "--model_path", model_path, "--exp_id", exp_id], 
+                 "--model_path", model_path, "--exp_id", exp_id, "--run_name", run_name,], 
                 check=True, capture_output=True, text=True, cwd=os.getcwd()
             )
             if result.stdout: print(f"--- Inference Output ---\n{result.stdout}")
@@ -170,7 +171,7 @@ class TidmadSandbox:
             print(f"--- Inference Error ---\n{error_msg}")
             return {"status": "error", "message": error_msg}
 
-    def execute_scoring(self, exp_id: str, model_type: str, m_cfg: Dict, t_cfg: Dict, l_cfg: Dict):
+    def execute_scoring(self, exp_id: str, run_name: str, model_type: str, m_cfg: Dict, t_cfg: Dict, l_cfg: Dict):
         """Calculates score and returns results to Skill layer."""
         result_json_name = f"experiment_results_{model_type}_{exp_id}.json"
         actual_json_path = os.path.abspath(os.path.join(self.dirs["records"], result_json_name))
@@ -179,7 +180,7 @@ class TidmadSandbox:
             print(f">>> [Executor] Running scoring for {exp_id}...")
             result = subprocess.run(
                 ["python", "denoising_score_single.py", "--mode", "agent", "-m", model_type, 
-                 "--exp_id", exp_id, "--output_json", actual_json_path], 
+                 "--exp_id", exp_id, "--run_name", run_name, "--output_json", actual_json_path], 
                 check=True, capture_output=True, text=True, cwd=os.getcwd()
             )
 

@@ -152,6 +152,8 @@ def main():
     parser.add_argument("--sandbox_dir", type=str, default="/home/klz/Data/TIDMAD_Sandbox/")
     parser.add_argument("--file_index", type=int, default=0)
     parser.add_argument("--exp_id", type=str, default="default_exp")
+    parser.add_argument("--run_name", type=str,  default="test_run",
+                        help="Run name for the auto-exploration.")
     args = parser.parse_args()
 
     # Define standard sandbox structure
@@ -178,7 +180,7 @@ def main():
     results = run_experiment(model_cfg, train_cfg, loss_cfg, loader, sandbox_dirs, args.exp_id)
     
     # Save final JSON
-    res_path = os.path.join(sandbox_dirs['results'], f"experiment_results_{model_cfg.model_type}_{args.exp_id}.json")
+    res_path = os.path.join(sandbox_dirs['results'], f"experiment_results_{model_cfg.model_type}_{args.run_name}_{args.exp_id}.json")
     with open(res_path, "w") as f: json.dump(results, f, indent=4)
     print(f"Results saved to: {res_path}")
 

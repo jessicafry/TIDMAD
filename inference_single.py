@@ -27,6 +27,8 @@ def get_parser():
     parser.add_argument('--model_cfg', type=str, help="Path to model config JSON")
     parser.add_argument('--loss_cfg', type=str, help="Path to loss config JSON")
     parser.add_argument('--exp_id', type=str, default="default_run")
+    parser.add_argument("--run_name", type=str,  default="test_run",
+                        help="Run name for the auto-exploration.")
     parser.add_argument('--model_path', type=str, help="Path to the .pth state_dict")
     return parser
 
@@ -132,8 +134,15 @@ def main():
             injected[idx] = ij
 
     # 4. Save Output
-    suffix = f"denoised_{args.denoising_model}" if args.mode == 'fix' else f"denoised_{args.denoising_model}_{args.exp_id}"
-    out_name = fpath.replace("abra_validation", f"abra_validation_{suffix}")
+    idx_str = str(args.file_index).zfill(4)
+    if args.mode == 'fix':
+        out_name = os.path.join(args.data_dir, f"abra_validation_denoised_{args.denoising_model}_{idx_str}.h5")
+    else:
+        out_name = os.path.join(args.data_dir, f"abra_validation_denoised_{args.denoising_model}_{args.run_name}_{args.exp_id}_{idx_str}.h5")
+
+    # Remove old files
+    if os.path.exists(out_name):
+        os.remove(out_name)
     
     create_abra_file(out_name, denoised.flatten().astype(np.int8), injected.flatten().astype(np.int8), indexed=False)
     print(f"Inference complete. Saved to: {out_name}")

@@ -18,26 +18,22 @@ class BaseRecorder:
 
 class LocalRecorder(BaseRecorder):
     """File-based recording for persistent agent memory."""
-    def __init__(self, record_dir: str, summary_file: str):
-        self.record_dir = record_dir
+    def __init__(self, record_dir: str, summary_file: str, run_name: str):
         self.summary_file = summary_file
+        self.record_dir = os.path.join(record_dir, run_name)
+        os.makedirs(self.record_dir, exist_ok=True)
 
     def save_record(self, record: Dict[str, Any]):
-        """Saves the FULL record including LLM memory to summary.json."""
         exp_id = record["exp_id"]
         
-        # 1. Save individual detail record in records/exp_id.json
+        # every detail json should stay in the run_name folder
         detail_path = os.path.join(self.record_dir, f"{exp_id}.json")
         with open(detail_path, 'w', encoding='utf-8') as f:
             json.dump(record, f, indent=4, ensure_ascii=False)
         
-        # 2. Update global summary.json
         summary = self.get_summary()
-        
-        # Check if record already exists to avoid duplicates
         existing_idx = next((i for i, item in enumerate(summary) if item.get("exp_id") == exp_id), None)
         
-        # IMPORTANT: We now save the WHOLE record dictionary to maintain Agent's memory
         if existing_idx is not None:
             summary[existing_idx] = record
         else:
@@ -91,8 +87,11 @@ class TidmadSandbox:
         if metadata_source == "mongodb" and mongodb_uri:
             self.recorder = MongoRecorder(mongodb_uri, "tidmad_db")
         else:
-            self.recorder = LocalRecorder(self.dirs["records"], os.path.join(self.base_dir, f"summary_{self.run_name}.json"))
-            
+            self.recorder = LocalRecorder(
+                self.dirs["records"], 
+                os.path.join(self.base_dir, f"summary_{self.run_name}.json"),
+                self.run_name
+            )
 
     def save_record(self, record: Dict[str, Any]):
         """Direct access for agent_main to save finalized research records."""
@@ -173,8 +172,11 @@ class TidmadSandbox:
 
     def execute_scoring(self, exp_id: str, run_name: str, model_type: str, m_cfg: Dict, t_cfg: Dict, l_cfg: Dict):
         """Calculates score and returns results to Skill layer."""
+        result_dir = os.path.join(self.dirs["records"], run_name)
+        os.makedirs(result_dir, exist_ok=True)
+        
         result_json_name = f"experiment_results_{model_type}_{exp_id}.json"
-        actual_json_path = os.path.abspath(os.path.join(self.dirs["records"], result_json_name))
+        actual_json_path = os.path.abspath(os.path.join(result_dir, result_json_name))
         
         try:
             print(f">>> [Executor] Running scoring for {exp_id}...")

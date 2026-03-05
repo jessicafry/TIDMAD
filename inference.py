@@ -66,8 +66,8 @@ args = parser.parse_args()
 NON_ML = False
 NFreqSplit = True
 #set number of training batches and input ouput size
-input_size = 500000
-batchsize = 1 # input_size//batchsize is the length of each time series
+input_size = 40000
+batchsize = 25 # input_size//batchsize is the length of each time series
 if args.denoising_model == "baseline":
 	input_size = 10000000
 	batchsize = 10
@@ -97,8 +97,6 @@ def read_loader(ABRAfile):
 	return np.concatenate([alltrain,alltarget],axis=1)
 
 def process_batch(index, inputarr, targetarr, model, args):
-	inputarr = inputarr.astype(np.int16) +128
-	targetarr = targetarr.astype(np.int16) +128
 	if args.denoising_model == "baseline":
 		# Size of moving average kernel
 		# print("i",inputarr.shape)
@@ -127,7 +125,7 @@ def process_batch(index, inputarr, targetarr, model, args):
 		# Forward pass
 		input_seq = input_seq.long().to(DEVICE)
 		output_seq = model(input_seq).argmax(dim=1).detach().cpu().numpy()
-	return index, (output_seq-128).flatten(), (targetarr-128).flatten()
+	return index, np.int8(output_seq-128).flatten(), np.int8(targetarr-128).flatten()
 
 def main():
 	'''
@@ -178,7 +176,7 @@ def main():
 					model.eval()
 				elif args.denoising_model == "wavenet":
 					if NFreqSplit:
-						model = torch.load(f'WaveNet_0_20.pth',map_location=DEVICE, weights_only=False)
+						model = torch.load(f'WaveNet_0_20.pth',map_location=DEVICE)
 					else:
 						model = torch.load(f'WaveNet_{low}_{high}.pth',map_location=DEVICE)
 					model.eval()

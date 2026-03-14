@@ -7,6 +7,7 @@ from torch.nn import TransformerEncoder, TransformerEncoderLayer
 from torch.utils.data import dataset
 import math
 import torchsnooper
+from torch.utils.checkpoint import checkpoint
 
 SEQ_LEN = 40000
 
@@ -528,7 +529,7 @@ class RNNSeq2Seq(nn.Module):
     Input: (batch, seq_len)
     Output: (batch, seq_len, num_classes)
     """
-    def __init__(self, 
+    def __init__(self,
                  vocab_size=256,
                  num_classes=256,
                  embedding_dim=128,
@@ -536,10 +537,10 @@ class RNNSeq2Seq(nn.Module):
                  num_layers=2,
                  dropout=0.1):
         super(RNNSeq2Seq, self).__init__()
-        
+
         self.encoder = Seq2SeqEncoder(vocab_size, embedding_dim, hidden_dim, num_layers, dropout)
         self.decoder = Seq2SeqDecoder(vocab_size, embedding_dim, hidden_dim, num_layers, num_classes, dropout)
-    
+
     # @torchsnooper.snoop()
     def forward(self, x):
         """
@@ -550,15 +551,275 @@ class RNNSeq2Seq(nn.Module):
             outputs: Output logits (batch, seq_len, num_classes)
         """
         batch_size, seq_len = x.shape
-        
+
         # Encode
         encoder_outputs, hidden, cell = self.encoder(x)
-        
+
         # Decode: use input sequence shifted as decoder input
         # This is a simplification - in practice you might want different logic
         decoder_input = x  # Using same sequence as decoder input
         outputs = self.decoder.forward_sequence(decoder_input, hidden, cell)
-        
+
         return outputs.transpose(1,2)
 
 
+# ============================================================
+# S4D State Space Model Components
+# Adapted from: https://github.com/chreissel/neutrino_project
+# ============================================================
+
+class DropoutNd(nn.Module):
+    """N-dimensional dropout with tied mask across sequence dimensions."""
+
+    def __init__(self, p: float = 0.5, tie=True, transposed=True):
+        super().__init__()
+        if p < 0 or p >= 1:
+            raise ValueError(f"dropout probability has to be in [0, 1), but got {p}")
+        self.p = p
+        self.tie = tie
+        self.transposed = transposed
+
+    def forward(self, X):
+        """X: (batch, dim, lengths...) when transposed=True."""
+        if self.training:
+            # Mask shape ties across sequence length when tie=True
+            mask_shape = X.shape[:2] + (1,) * (X.ndim - 2) if self.tie else X.shape
+            mask = torch.rand(*mask_shape, device=X.device) < 1.0 - self.p
+            X = X * mask * (1.0 / (1 - self.p))
+        return X
+
+
+class S4DKernel(nn.Module):
+    """Generate convolution kernel from diagonal SSM parameters.
+
+    Uses Vandermonde multiplication with learnable log-dt, C, A parameters
+    to produce a length-L convolution kernel in O(N log L) time via FFT.
+    """
+
+    def __init__(self, d_model, N=64, dt_min=0.001, dt_max=0.1, lr=None):
+        super().__init__()
+        H = d_model
+        log_dt = torch.rand(H) * (math.log(dt_max) - math.log(dt_min)) + math.log(dt_min)
+
+        C = torch.randn(H, N // 2, dtype=torch.cfloat)
+        self.C = nn.Parameter(torch.view_as_real(C))
+        self._register("log_dt", log_dt, lr)
+
+        log_A_real = torch.log(0.5 * torch.ones(H, N // 2))
+        A_imag = math.pi * torch.arange(N // 2).unsqueeze(0).expand(H, -1).float()
+        self._register("log_A_real", log_A_real, lr)
+        self._register("A_imag", A_imag, lr)
+
+    def forward(self, L):
+        """Returns kernel of shape (H, L)."""
+        dt = torch.exp(self.log_dt)                          # (H,)
+        C = torch.view_as_complex(self.C)                    # (H, N/2)
+        A = -torch.exp(self.log_A_real) + 1j * self.A_imag  # (H, N/2)
+
+        # Vandermonde multiplication to build the kernel
+        dtA = A * dt.unsqueeze(-1)                           # (H, N/2)
+        K = dtA.unsqueeze(-1) * torch.arange(L, device=A.device)  # (H, N/2, L)
+        C = C * (torch.exp(dtA) - 1.0) / A
+        K = 2 * torch.einsum("hn,hnl->hl", C, torch.exp(K)).real  # (H, L)
+        return K
+
+    def _register(self, name, tensor, lr=None):
+        """Register a tensor with optional per-parameter learning rate and zero weight decay."""
+        if lr == 0.0:
+            self.register_buffer(name, tensor)
+        else:
+            self.register_parameter(name, nn.Parameter(tensor))
+            optim = {"weight_decay": 0.0}
+            if lr is not None:
+                optim["lr"] = lr
+            setattr(getattr(self, name), "_optim", optim)
+
+
+class S4D(nn.Module):
+    """S4D layer: efficient SSM with diagonal parameterization and spectral convolution.
+
+    The forward pass computes the SSM convolution kernel in the frequency domain
+    (via FFT), multiplies with the input spectrum, and transforms back via iFFT.
+    A skip connection (D term) and pointwise output projection with GLU gating
+    complete the layer.
+
+    Input/output shape: (B, H, L) when transposed=True (default).
+    """
+
+    def __init__(self, d_model, d_state=64, dropout=0.0, transposed=True, **kernel_args):
+        super().__init__()
+        self.h = d_model
+        self.n = d_state
+        self.d_output = self.h
+        self.transposed = transposed
+
+        # Skip connection parameter
+        self.D = nn.Parameter(torch.randn(self.h))
+
+        # SSM kernel generator
+        self.kernel = S4DKernel(self.h, N=self.n, **kernel_args)
+
+        # Pointwise activation and dropout
+        self.activation = nn.GELU()
+        self.dropout = DropoutNd(dropout) if dropout > 0.0 else nn.Identity()
+
+        # Output projection with GLU gating
+        self.output_linear = nn.Sequential(
+            nn.Conv1d(self.h, 2 * self.h, kernel_size=1),
+            nn.GLU(dim=-2),
+        )
+
+    def forward(self, u, **kwargs):
+        """
+        Args:
+            u: Input tensor of shape (B, H, L) [transposed=True] or (B, L, H).
+        Returns:
+            y: Output tensor of same shape as u.
+            None: Placeholder for state (compatible with recurrent interfaces).
+        """
+        if not self.transposed:
+            u = u.transpose(-1, -2)
+        L = u.size(-1)
+
+        # Compute SSM convolution kernel in frequency domain (spectral convolution)
+        k = self.kernel(L=L)                         # (H, L)
+        k_f = torch.fft.rfft(k, n=2 * L)            # (H, L+1) complex
+        u_f = torch.fft.rfft(u, n=2 * L)            # (B, H, L+1) complex
+        y = torch.fft.irfft(u_f * k_f, n=2 * L)[..., :L]  # (B, H, L)
+
+        # D-term skip connection
+        y = y + u * self.D.unsqueeze(-1)
+
+        y = self.dropout(self.activation(y))
+        y = self.output_linear(y)
+
+        if not self.transposed:
+            y = y.transpose(-1, -2)
+        return y, None
+
+
+class MixtureMSESpectralLoss(nn.Module):
+    """Hybrid loss combining time-domain MSE and frequency-domain spectral loss.
+
+    Computes MSE on raw predictions and MSE on the magnitude of the real FFT,
+    then combines them with a weighting parameter alpha:
+        loss = alpha * MSE(time_domain) + (1 - alpha) * MSE(|FFT|)
+
+    Args:
+        alpha: Weight for the time-domain MSE term (default 0.5).
+    """
+
+    def __init__(self, alpha: float = 0.5):
+        super().__init__()
+        if not 0.0 <= alpha <= 1.0:
+            raise ValueError(f"alpha must be in [0, 1], got {alpha}")
+        self.alpha = alpha
+        self.mse = nn.MSELoss()
+
+    def forward(self, inputs: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        mse_loss = self.mse(inputs, targets)
+
+        # Spectral loss: compare magnitude spectra along the last (sequence) dimension
+        inputs_mag = torch.abs(torch.fft.rfft(inputs, dim=-1))
+        targets_mag = torch.abs(torch.fft.rfft(targets, dim=-1))
+        spectral_loss = self.mse(inputs_mag, targets_mag)
+
+        return self.alpha * mse_loss + (1.0 - self.alpha) * spectral_loss
+
+
+class S4DSeq2SeqModel(nn.Module):
+    """S4D sequence-to-sequence model for denoising.
+
+    Unlike classification models that pool over time, this model preserves the
+    full sequence length and maps each timestep to d_output channels, making it
+    suitable for time-series denoising tasks.
+
+    Input shape:  (B, L, d_input)
+    Output shape: (B, L, d_output)
+    """
+
+    def __init__(self, d_input, d_output, d_model=128, n_layers=6,
+                 dropout=0.0, prenorm=False, gradient_checkpointing=False):
+        super().__init__()
+        self.prenorm = prenorm
+        self.gradient_checkpointing = gradient_checkpointing
+
+        self.encoder = nn.Linear(d_input, d_model)
+
+        self.s4_layers = nn.ModuleList()
+        self.norms = nn.ModuleList()
+        self.dropouts = nn.ModuleList()
+        for _ in range(n_layers):
+            self.s4_layers.append(
+                S4D(d_model, dropout=dropout, transposed=True, lr=min(0.001, 0.01))
+            )
+            self.norms.append(nn.LayerNorm(d_model))
+            self.dropouts.append(DropoutNd(dropout) if dropout > 0.0 else nn.Identity())
+
+        self.decoder = nn.Linear(d_model, d_output)
+
+    def forward(self, x):
+        """
+        Args:
+            x: (B, L, d_input) float tensor.
+        Returns:
+            (B, L, d_output) float tensor.
+        """
+        x = self.encoder(x)       # (B, L, d_model)
+        x = x.transpose(-1, -2)   # (B, d_model, L) — transposed format for S4D
+
+        for layer, norm, drop in zip(self.s4_layers, self.norms, self.dropouts):
+            z = x
+            if self.prenorm:
+                z = norm(z.transpose(-1, -2)).transpose(-1, -2)
+            if self.gradient_checkpointing:
+                z = checkpoint(lambda inp: layer(inp)[0], z, use_reentrant=False)
+            else:
+                z, _ = layer(z)
+            z = drop(z)
+            x = z + x             # residual connection
+            if not self.prenorm:
+                x = norm(x.transpose(-1, -2)).transpose(-1, -2)
+
+        x = x.transpose(-1, -2)   # (B, L, d_model)
+        x = self.decoder(x)        # (B, L, d_output)
+        return x
+
+
+class S4DenoisModel(nn.Module):
+    """TIDMAD-compatible wrapper around S4DSeq2SeqModel for ABRA data denoising.
+
+    Accepts the same float input format as the AE/FCNet models (values 0-255
+    representing ADC counts), normalizes internally to [0, 1], applies an
+    S4D sequence-to-sequence denoising network, and returns output in the
+    original 0-255 scale.
+
+    The spectral convolution inside S4D allows the model to capture both
+    short- and long-range frequency dependencies, which is important for
+    separating narrow-band axion signals from broadband SQUID noise.
+
+    Input/output shape: (B, L) float, values in [0, 255].
+    Loss: MixtureMSESpectralLoss (combined time-domain + frequency-domain).
+    """
+
+    def __init__(self, d_model=128, n_layers=6, dropout=0.0):
+        super().__init__()
+        self.s4_model = S4DSeq2SeqModel(
+            d_input=1,
+            d_output=1,
+            d_model=d_model,
+            n_layers=n_layers,
+            dropout=dropout,
+        )
+
+    def forward(self, x):
+        """
+        Args:
+            x: (B, L) float tensor with ADC values in [0, 255].
+        Returns:
+            (B, L) float tensor with denoised values in [0, 255].
+        """
+        x_norm = x / 255.0               # normalize to [0, 1]
+        x_in = x_norm.unsqueeze(-1)      # (B, L, 1)
+        out = self.s4_model(x_in)        # (B, L, 1)
+        return out.squeeze(-1) * 255.0   # (B, L) in [0, 255]

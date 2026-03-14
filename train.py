@@ -22,7 +22,7 @@ import gc
 import os
 import math
 from torch.utils.data import dataset
-from network import PositionalUNet, FocalLoss1D, TransformerModel, AE, SimpleWaveNet, RNNSeq2Seq
+from network import PositionalUNet, FocalLoss1D, TransformerModel, AE, SimpleWaveNet, RNNSeq2Seq, S4DenoisModel, MixtureMSESpectralLoss
 
 # SQUID = h5py.File(SQUIDname,'r')
 # SG = h5py.File(SGname, 'r')
@@ -107,6 +107,9 @@ for ifile in range(rb,re):
         elif args.denoising_model == "rnn":
             model = RNNSeq2Seq().to(DEVICE)
             criterion = FocalLoss1D().to(DEVICE)
+        elif args.denoising_model == "s4denois":
+            model = S4DenoisModel().to(DEVICE)
+            criterion = MixtureMSESpectralLoss().to(DEVICE)
         else:
             raise ValueError
 
@@ -130,7 +133,7 @@ for ifile in range(rb,re):
 
 
         # Forward pass
-        if not (args.denoising_model == "fcnet"):
+        if not (args.denoising_model in ["fcnet", "s4denois"]):
             input_seq = input_seq.int()
             target_seq = target_seq.long()
         
@@ -174,5 +177,7 @@ for ifile in range(rb,re):
             torch.save(model, f'WaveNet_{prev_file}_{ifile+1}.pth')
         elif args.denoising_model == "rnn":
             torch.save(model, f'RNN_{prev_file}_{ifile+1}.pth')
+        elif args.denoising_model == "s4denois":
+            torch.save(model, f'S4Denois_{prev_file}_{ifile+1}.pth')
         del model, criterion, optimizer
         torch.cuda.empty_cache()

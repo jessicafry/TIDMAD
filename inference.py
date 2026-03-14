@@ -41,7 +41,7 @@ import gc
 import os
 import math
 from torch.utils.data import dataset
-from network import PositionalUNet, FocalLoss1D, TransformerModel, AE, SimpleWaveNet, RNNSeq2Seq
+from network import PositionalUNet, FocalLoss1D, TransformerModel, AE, SimpleWaveNet, RNNSeq2Seq, S4DenoisModel, MixtureMSESpectralLoss
 from array2h5 import create_abra_file
 from scipy.signal import savgol_filter
 import concurrent.futures
@@ -115,7 +115,7 @@ def process_batch(index, inputarr, targetarr, model, args):
 		output_seq = np.convolve(inputarr.flatten(), kernel,mode="same")
 	elif args.denoising_model == "savgol":
 		output_seq = savgol_filter(inputarr[0].flatten(), window_size, savgol_order)
-	elif args.denoising_model == "fcnet":
+	elif args.denoising_model in ["fcnet", "s4denois"]:
 		input_seq = torch.from_numpy(inputarr)
 		# Forward pass
 		input_seq = input_seq.float().to(DEVICE)
@@ -182,6 +182,9 @@ def main():
 					model.eval()
 				elif args.denoising_model == "rnn":
 					model = torch.load(f'RNN_{low}_{high}.pth',map_location=DEVICE)
+					model.eval()
+				elif args.denoising_model == "s4denois":
+					model = torch.load(f'S4Denois_{low}_{high}.pth',map_location=DEVICE)
 					model.eval()
 				else:
 					'''

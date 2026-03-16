@@ -55,10 +55,14 @@ def download_type(folder, file_prefix, num_files, args):
 		if args.skip_downloaded and os.path.exists(os.path.join(args.output_dir,fname)):
 			continue
 		if args.print:
-			print(f"wget {url}")
+			print(f"wget {'-c ' if args.continue_download else ''}{url}")
 		else:
 			try:
-				subprocess.run(["wget", url, "-O", os.path.join(args.output_dir,fname)])
+				wget_cmd = ["wget"]
+				if args.continue_download:
+					wget_cmd.append("-c")
+				wget_cmd += [url, "-O", os.path.join(args.output_dir,fname)]
+				subprocess.run(wget_cmd)
 			except urllib.error.HTTPError as err:
 				print(f"File {fname} not downloaded! Please consider trying with another cache using the -c flag.")
 	return 0
@@ -81,6 +85,7 @@ def main():
 	parser.add_argument('-f', '--force', action='store_true', help='Directly proceed to download without showing the file size and confirm.')
 	parser.add_argument('-sk', '--skip_downloaded', action='store_true', help='Skip the file that has already been downloaded at --output_dir')
 	parser.add_argument('-w', '--weak', action='store_true', help='Download the "weak signal" version of training and validation file. In this version, the injected signal is 1/5 of the normal version. This is a more challenging denoising task.')
+	parser.add_argument('-C', '--continue_download', action='store_true', help='Resume partially downloaded files using wget -c (continue flag). Prevents restarting downloads from scratch.')
 	parser.add_argument('-p', '--print', action='store_true', help='Print out all downloading scripts instead of actually downloading the file.')
 
 	args = parser.parse_args()

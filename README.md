@@ -7,26 +7,75 @@ Code repository for TIDMAD: TIme series dataset for discovering Dark Matter with
 
 [NeurIPS Spotlight Paper](https://neurips.cc/virtual/2025/poster/121748)
 
-## Download Data
-The TIDMAD dataset can be downloaded using the `download_data.py` script provided in this GitHub repository. This script runs without any external dependencies. Data downloading is achieved by generating a series of wget commands and executing them in a Linux environment. `download_data.py` has the following arguments:
-* `--output_dir -o`: Destination directory where the file will be downloaded, default: current working directory.
-* `--cache -c` Which OSDF cache location should be used to download data. Options includes [NY/NorCal/SoCal/Director(default)]:
-  * NY: New York
-  * NorCal: Sunnyvale
-  * SoCal: San Diego
-  * Director: automatically find the fastest cache location based on user's location.
-     * **WARNING:** Director cache is sometimes unstable. We recommend switching to a different cache if the download fails.
-* `--train_files -t`: Number of training files to download, must be an integer between 0 and 20, default 20.
-* `--validation_files -v`: Number of validation files to download, must be an integer between 0 and 20, default 20.
-* `--science_files -s`: Number of science files to download, must be an integer between 0 and 208, default 208.
-* `-f, --force`: Directly proceed to download without showing the file size and asking the confirmation question.
-* `-sk, --skip_downloaded`: Skip the file that has already exist at --output_dir
-* `-w, --weak`: Download the weak signal version of training and validation files. In this version, the injected signal is 1/5 the amplitude of the normal version. This is a more challenging denoising task. Note that the normal version has a file range 0000-0019, while the weak version has a file range of 0020-0039.
-* `-p, --print`: Print out all wget commands instead of actually executing the download commands.
+# Downloading Data
+The TIDMAD dataset can be downloaded using the download_data.py script provided in this GitHub repository. This script runs is a command-line utility for downloading the TIDMAD dataset, hosted on Hugging Face and the San Diego Supercomputer Center (SDSC) via the Pelican object store. The script supports flexible partial downloads, automatic source fallback, and a dry-run mode for inspecting commands before executing them.
+## Requirements
+- **Python 3.7+**
+- [`huggingface_hub`](https://github.com/huggingface/huggingface_hub) Python package (for Hugging Face downloads)
+- [`pelican`](https://pelicanplatform.org/) CLI (for SDSC downloads)
+## Installation
+1. **Clone or download** this repository, then navigate to the directory containing `download_data.py`.
+2. **Install the Python dependency:**
+   ```bash
+   pip install huggingface_hub
+   ```
+3. **(Optional) Install Pelican** if you plan to use SDSC as a download source:
+   Follow the [Pelican installation guide](https://pelicanplatform.org/get-pelican) for your platform.
+4. **Verify your setup:**
+   ```bash
+   python download_data.py -h
+## Usage
+```bash
+python download_data.py [OPTIONS]
+```
+Running without any arguments will download the **full dataset** (20 training + 20 validation + 208 science files) to the current working directory using Hugging Face. You will be prompted to confirm before any files are downloaded.
+## Arguments Reference
+| Argument | Short | Type | Default | Description |
+|---|---|---|---|---|
+| `--output_dir` | `-o` | `str` | Current directory | Directory where downloaded files will be saved. Must already exist. |
+| `--train_files` | `-t` | `int` (0–20) | `20` | Number of training files to download. |
+| `--validation_files` | `-v` | `int` (0–20) | `20` | Number of validation files to download. |
+| `--science_files` | `-s` | `int` (0–208) | `208` | Number of science files to download. |
+| `--source` | — | `auto`\|`hf`\|`sdsc` | `auto` | Download source (see [Download Sources](#download-sources)). |
+| `--force` | `-f` | flag | `False` | Skip the size summary and confirmation prompt. |
+| `--skip_downloaded` | `-sk` | flag | `False` | Skip files that already exist in `--output_dir`. |
+| `--weak` | `-w` | flag | `False` | Download the weak signal variant of training/validation files (see [Weak Signal Variant](#weak-signal-variant)). |
+| `--print` | `-p` | flag | `False` | Print the equivalent download commands without executing them (dry run). |
+## Download Sources
+The script supports three download source modes, controlled by `--source`:
+### `auto` (default)
+Attempts to download each file from **Hugging Face first**. If the Hugging Face download fails for any reason, it automatically retries using **SDSC via Pelican**. This is the recommended mode for most users.
+### `hf`
+Downloads exclusively from the [Hugging Face dataset repository](https://huggingface.co/datasets/jessicafry/TIDMAD). No fallback is attempted. Requires the `huggingface_hub` package.
+### `sdsc`
+Downloads exclusively from SDSC using the Pelican object store. Requires the `pelican` CLI to be installed and configured.
+## Output File Naming
+All files are saved with zero-padded four-digit indices:
+```
+abra_training_0000.h5 ... abra_training_0019.h5
+abra_validation_0000.h5 ... abra_validation_0019.h5
+abra_science_0000.h5 ... abra_science_0207.h5
+```
+All files are placed flat in `--output_dir` — no subdirectories are created.
+## Dry-Run Mode
+Use `-p` / `--print` to preview the exact commands that would be executed, without downloading anything. This is useful for scripting, auditing, or manual downloading.
+## Resuming Interrupted Downloads
+If a download is interrupted, use `--skip_downloaded` (`-sk`) on the next run. The script will check for existing files in `--output_dir` and skip any that are already present:
+```bash
+python download_data.py -o /data/tidmad --skip_downloaded
+```
+> **Note:** The script checks for file existence only — it does not validate file integrity or size. If you suspect a file was partially downloaded, delete it manually before re-running.
+## Weak Signal Variant
+Training and validation files come in two signal strength variants:
+- **Standard** (default): Files indexed `0000`–`0019`. The injected signal is at full amplitude.
+- **Weak signal** (`--weak`): Files indexed `0020`–`0039`. The injected signal is **1/5 the amplitude** of the standard variant, intended for more challenging detection benchmarks.
+Use `--weak` to download the weak signal versions instead of the standard ones:
+```bash
+python download_data.py --weak -s 0
+```
+The weak signal flag only affects training and validation files. Science files are unaffected.
 
-Alternatively, you can use the `filelist.dat` file, which contains the wget commands to download the entire dataset (except the weak signal version).
-
-## Dataset Composition:
+# Dataset Composition:
 The dataset includes 248 files (288 if the weak signal version is included), all in HDF5 format. Dataset composition is specified in `TIDMAD_croissant.json`. The dataset is partitioned into three subsets:
 1. Training Dataset: `abra_training_00{##}.h5` where ## varies from 00 to 19
    * Each training `.h5` file has the following format:<br><img width="274" alt="abra_training_structure" src="images/abra_training.png">
@@ -38,7 +87,7 @@ The dataset includes 248 files (288 if the weak signal version is included), all
 
 **Caveat:** Due to a hardware condition, the size of channel0001 and channel0002 time series in a few training and validation files are not identical. This does not affect the sample-to-sample correspondence between the two channels except in the last few time samples. To get around this, we recommend only using the first 2,000,000,000 samples in both channels for all files (i.e. `ch01_time_series = ch01_time_series[:2000000000]`).
 
-## Model Training and Benchmarking:
+# Model Training and Benchmarking:
 <br>![dataflow](images/tidmad_dataflow_git.png)
 <br>
 TIDMAD users could follow the procedure below to reprocued the result in our paper:
@@ -77,8 +126,8 @@ TIDMAD users could follow the procedure below to reprocued the result in our pap
    * **Note**: the denoised `.csv` files generated by step 7 must placed in the `limit_data` folder. The variable `denoised_ABRA_limit_file` in the jupyter notebook must be changed accordingly.
    * You must have `AxionPhoton_TIDMAD.ipynb`, `PlotFuncs_TIDMAD.py`, and `limit_data` (along with all of its contents) in the same directory for this script to run.
 
-## Paper Abstract
+# Paper Abstract
 Dark matter makes up approximately 85\% of total matter in our universe, yet it has never been directly observed in any laboratory on Earth as of today. The origin of dark matter is one of the most important questions in contemporary physics, and a convincing detection of dark matter would be a Nobel-Prize-level breakthrough in fundamental science. The ABRACADABRA experiment was meticulously designed to search for dark matter. Although it has not yet made a discovery, ABRACADABRA has produced several dark matter search result widely endorsed by the physics community. The experiment generates ultra-long time-series data at a rate of 10 million samples per second, where the dark matter signal, if exist, would manifest  itself as a sinusoidal oscillation mode within the ultra-long time series. In this paper, we present a comprehensive data release from the ABRACADABRA experiment including three key components: a ultra-long time series dataset divided into training, validation, and dark matter search subsets; a carefully-designed denoising score for direct model benchmarking; and a complete analysis framework which yield a community-standard dark matter search result suitable for publication in a physics journal. Our data release enables core AI algorithms to directly produce physics results thereby advancing fundamental science.
 
-## License
+# License
 Both the TIDMAD dataset and the associated software in this repository are licensed under the [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) license
